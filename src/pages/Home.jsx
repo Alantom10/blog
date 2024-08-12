@@ -35,7 +35,6 @@ function Home() {
                 />
             </div>
         </div>
-
     )
 };
 
