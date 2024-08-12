@@ -10,7 +10,7 @@ function Header() {
                 </Link>
             </div>
 
-            <div className="flex justify-center items-center border border-white/[0.1] rounded-full w-28 h-9 shadow-md shadow-slate-950 text-sm text-center transition-colors duration-700 transform hover:bg-white hover:text-react-blue hover:border-transparent">
+            <div className="flex justify-center items-center border border-white/[0.1] bg-react-blue rounded-full w-28 h-9 shadow-md shadow-slate-950 text-sm text-center transition-colors duration-700 transform hover:bg-white hover:text-react-blue hover:border-transparent">
                 <Link to="/about">
                     ABOUT
                 </Link> 
