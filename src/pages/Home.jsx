@@ -4,8 +4,27 @@ import coverImage from "../assets/wd.jpg"
 
 function Home() {
     return (
-        <div className="md:max-w-[1200px] lg:max-w-[1400px] mx-auto w-full pb-10 md:pb-20 pt-20 px-10">
-            <div className="grid grid-cols-2 grid-rows-2 gap-8 py-20 md:pt-40">
+        <div className="max-w-[960px] mx-auto w-full pb-10 md:pb-20 pt-20 px-10 box-content">
+            <div className="grid grid-cols-12 grid-rows-layout gap-[50px] py-20 md:pt-40">
+                <Card
+                    title="Understanding React Hooks"
+                    intro="React Hooks are a powerful addition to the React API that allows developers to use state and other features in functional components..."
+                    coverImage={ coverImage }
+                    authorName="Alan Thomas"
+                    authorProfileImage={ authorProfileImage }
+                    datePublished="August 9, 2024"
+                    layoutType="main"
+                />
+
+                <Card
+                    title="Understanding React Hooks"
+                    intro="React Hooks are a powerful addition to the React API that allows developers to use state and other features in functional components..."
+                    coverImage={ coverImage }
+                    authorName="Alan Thomas"
+                    authorProfileImage={ authorProfileImage }
+                    datePublished="August 9, 2024"
+                />
+
                 <Card
                     title="Understanding React Hooks"
                     intro="React Hooks are a powerful addition to the React API that allows developers to use state and other features in functional components..."
@@ -15,8 +34,6 @@ function Home() {
                     datePublished="August 9, 2024"
                 />
             </div>
-            {/* <h1 className="py-20 md:pt-40 ">Welcome to the Home Page</h1>
-            <p>This is the home page content.</p> */}
         </div>
 
     )
