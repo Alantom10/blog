@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 function Footer() {
     return (
-        <footer className="w-full bg-react-blue flex flex-col px-10 pt-10 h-[40vh] justify-between">
+        <footer className="max-w-[1600px] mx-auto w-full bg-react-blue flex flex-col px-10 pt-10 h-[40vh] justify-between">
             <div className="flex justify-between">
                 <div>
                     <h2 className="text-3xl lg:text-5xl font-semibold pb-10">Let's Connect !</h2>
