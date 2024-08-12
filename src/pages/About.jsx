@@ -1,6 +1,11 @@
-import authorProfileImage from "../assets/alan-profile.JPG"
+import { useEffect } from 'react';
+import authorProfileImage from "../assets/alan-profile.JPG";
 
 function About() {
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
     return (
         <>
             <style>

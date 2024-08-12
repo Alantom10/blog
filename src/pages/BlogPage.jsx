@@ -1,8 +1,13 @@
+import { useEffect } from 'react';
 import authorProfileImage from "../assets/alan-profile.JPG"
 import coverImage from "../assets/wd.jpg"
 import CompSci from "../assets/compsci.png"
 
 function BlogPage() {
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+    
     return (
         <>
             <style>
