@@ -3,6 +3,7 @@
 :root {
   --background: #23272F;
   --text: #FFFFFF;
+  --code-background: #16181D;
 }
 
 * {
@@ -20,6 +21,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--background);
   color: var(--text);
+}
+
+div.code,
+code {
+  background-color: var(--code-background);
 }
 
 code {
