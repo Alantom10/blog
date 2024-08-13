@@ -104,6 +104,8 @@ function BlogPage() {
                     In this example, the <code className="rounded px-2 py-0.5">useEffect</code> hook updates the document title whenever the <code className="rounded px-2 py-0.5">count</code> changes. The second argument to <code className="rounded px-2 py-0.5">useEffect</code> is an array of dependencies, ensuring the effect only runs when the <code className="rounded px-2 py-0.5">count</code> value changes.
                 </p>
 
+                <img src={ CompSci } alt="Example" className="w-full rounded-md mt-10 mb-6" />
+
                 <h2 className="text-2xl font-semibold mb-4">Conclusion</h2>
                 <p className="leading-7 text-lg mb-6">
                     React Hooks have fundamentally changed how we write React components. They provide a cleaner and more concise way to use state and other React features in functional components. As you continue to work with Hooks, you'll discover how they simplify your code and improve your development workflow.
