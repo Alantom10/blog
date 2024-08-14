@@ -79,7 +79,7 @@ function BlogPage() {
                     <p className="text-slate-500 px-2 font-light">{ blogData.datePublished }</p>
                 </div>
 
-                <img src={ coverImage } alt="React Hooks Cover" className="w-full rounded-md mt-20 mb-10" />
+                <img src={ coverImage } alt={`${blogData.title} cover`} className="w-full rounded-md mt-20 mb-10" />
                 
                 { renderContent(blogData.content) }
 

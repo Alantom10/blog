@@ -1,80 +1,82 @@
-{
-    "title": "Understanding React Hooks",
-    "author": {
-        "name": "Alan Thomas",
-        "profileImageUrl": "alan-profile.JPG"
-    },
-    "coverImage": "wd.jpg",
-    "datePublished": "2024-08-09",
-    "content": [
-        {
-            "type": "paragraph",
-            "text": "React Hooks were introduced in React 16.8 and have since revolutionized how developers write functional components. Hooks allow you to use state and other React features without writing a class. In this blog, we will dive deep into the most commonly used hooks and how they can simplify your React development.",
-            "highlights": []
+[
+    {
+        "title": "Understanding React Hooks",
+        "author": {
+            "name": "Alan Thomas",
+            "profileImageUrl": "alan-profile.JPG"
         },
-        {
-            "type": "heading",
-            "level": 2,
-            "text": "What are React Hooks?"
-        },
-        {
-            "type": "paragraph",
-            "text": "React Hooks are functions that let you use state and lifecycle features in functional components. Before hooks, these features were only available in class components. Hooks have made functional components more powerful, and it's now possible to build complex applications using only functions.",
-            "highlights": []
-        },
-        {
-            "type": "heading",
-            "level": 2,
-            "text": "useState Hook"
-        },
-        {
-            "type": "paragraph",
-            "text": "The useState hook allows you to add state to your functional components. It's similar to this.state in class components. Here's an example:",
-            "highlights": ["useState", "this.state"]
-        },
-        {
-            "type": "code",
-            "language": "javascript",
-            "code": "import React, { useState } from 'react';\n\nfunction Counter() {\n    const [count, setCount] = useState(0);\n\n    return (\n        <div>\n            <p>You clicked {count} times</p>\n            <button onClick={() => setCount(count + 1)}>\n                Click me\n            </button>\n        </div>\n    );\n}"
-        },
-        {
-            "type": "paragraph",
-            "text": "In this example, the useState hook initializes the count variable to 0. The setCount function is used to update the count value, and the component re-renders whenever the state changes.",
-            "highlights": ["useState", "count", "setCount"]
-        },
-        {
-            "type": "heading",
-            "level": 2,
-            "text": "useEffect Hook"
-        },
-        {
-            "type": "paragraph",
-            "text": "The useEffect hook allows you to perform side effects in your components. It's similar to lifecycle methods like componentDidMount, componentDidUpdate, and componentWillUnmount in class components. Here's an example:",
-            "highlights": ["useEffect", "componentDidMount", "componentDidUpdate", "componentWillUnmount"]
-        },
-        {
-            "type": "code",
-            "language": "javascript",
-            "code": "import React, { useState, useEffect } from 'react';\n\nfunction Example() {\n    const [count, setCount] = useState(0);\n\n    useEffect(() => {\n        document.title = `You clicked ${count} times`;\n    }, [count]);\n\n    return (\n        <div>\n            <p>You clicked {count} times</p>\n            <button onClick={() => setCount(count + 1)}>\n                Click me\n            </button>\n        </div>\n    );\n}"
-        },
-        {
-            "type": "paragraph",
-            "text": "In this example, the useEffect hook updates the document title whenever the count changes. The second argument to useEffect is an array of dependencies, ensuring the effect only runs when the count value changes.",
-            "highlights": ["useEffect", "count"]
-        },
-        {
-            "type": "image",
-            "url": "compsci.png"
-        },
-        {
-            "type": "heading",
-            "level": 2,
-            "text": "Conclusion"
-        },
-        {
-            "type": "paragraph",
-            "text": "React Hooks have fundamentally changed how we write React components. They provide a cleaner and more concise way to use state and other React features in functional components. As you continue to work with Hooks, you'll discover how they simplify your code and improve your development workflow.",
-            "highlights": []
-        }
-    ]
-}
+        "coverImage": "wd.jpg",
+        "datePublished": "2024-08-09",
+        "content": [
+            {
+                "type": "paragraph",
+                "text": "React Hooks were introduced in React 16.8 and have since revolutionized how developers write functional components. Hooks allow you to use state and other React features without writing a class. In this blog, we will dive deep into the most commonly used hooks and how they can simplify your React development.",
+                "highlights": []
+            },
+            {
+                "type": "heading",
+                "level": 2,
+                "text": "What are React Hooks?"
+            },
+            {
+                "type": "paragraph",
+                "text": "React Hooks are functions that let you use state and lifecycle features in functional components. Before hooks, these features were only available in class components. Hooks have made functional components more powerful, and it's now possible to build complex applications using only functions.",
+                "highlights": []
+            },
+            {
+                "type": "heading",
+                "level": 2,
+                "text": "useState Hook"
+            },
+            {
+                "type": "paragraph",
+                "text": "The useState hook allows you to add state to your functional components. It's similar to this.state in class components. Here's an example:",
+                "highlights": ["useState", "this.state"]
+            },
+            {
+                "type": "code",
+                "language": "javascript",
+                "code": "import React, { useState } from 'react';\n\nfunction Counter() {\n    const [count, setCount] = useState(0);\n\n    return (\n        <div>\n            <p>You clicked {count} times</p>\n            <button onClick={() => setCount(count + 1)}>\n                Click me\n            </button>\n        </div>\n    );\n}"
+            },
+            {
+                "type": "paragraph",
+                "text": "In this example, the useState hook initializes the count variable to 0. The setCount function is used to update the count value, and the component re-renders whenever the state changes.",
+                "highlights": ["useState", "count", "setCount"]
+            },
+            {
+                "type": "heading",
+                "level": 2,
+                "text": "useEffect Hook"
+            },
+            {
+                "type": "paragraph",
+                "text": "The useEffect hook allows you to perform side effects in your components. It's similar to lifecycle methods like componentDidMount, componentDidUpdate, and componentWillUnmount in class components. Here's an example:",
+                "highlights": ["useEffect", "componentDidMount", "componentDidUpdate", "componentWillUnmount"]
+            },
+            {
+                "type": "code",
+                "language": "javascript",
+                "code": "import React, { useState, useEffect } from 'react';\n\nfunction Example() {\n    const [count, setCount] = useState(0);\n\n    useEffect(() => {\n        document.title = `You clicked ${count} times`;\n    }, [count]);\n\n    return (\n        <div>\n            <p>You clicked {count} times</p>\n            <button onClick={() => setCount(count + 1)}>\n                Click me\n            </button>\n        </div>\n    );\n}"
+            },
+            {
+                "type": "paragraph",
+                "text": "In this example, the useEffect hook updates the document title whenever the count changes. The second argument to useEffect is an array of dependencies, ensuring the effect only runs when the count value changes.",
+                "highlights": ["useEffect", "count"]
+            },
+            {
+                "type": "image",
+                "url": "compsci.png"
+            },
+            {
+                "type": "heading",
+                "level": 2,
+                "text": "Conclusion"
+            },
+            {
+                "type": "paragraph",
+                "text": "React Hooks have fundamentally changed how we write React components. They provide a cleaner and more concise way to use state and other React features in functional components. As you continue to work with Hooks, you'll discover how they simplify your code and improve your development workflow.",
+                "highlights": []
+            }
+        ]
+    }
+]

@@ -1,11 +1,59 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import 'quill/dist/quill.snow.css';
 import ReactQuill from 'react-quill';
+import jsonData from '../data/mock.json';
 
 function CreatePost() {
+    const [content, setContent] = useState('');
+    const [title, setTitle] = useState('');
+    const [coverImage, setCoverImage] = useState('');
+
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
+
+    const handleProcedureContentChange = (content) => {
+        setContent(content);
+    }
+
+    const handleTitleChange = (e) => {
+        setTitle(e.target.value);
+    }
+
+    const handleCoverImageChange = (e) => {
+        setCoverImage(e.target.files[0] ? e.target.files[0].name : '');
+    };
+
+    const savePost = () => {
+        const post = {
+            title: title,
+            author: {
+                name: "Alan Thomas",
+                profileImageUrl: "alan-profile.JPG",
+            },
+            coverImage: coverImage || '',
+            datePublished: new Date().toLocaleDateString(),
+            content: content
+        };
+
+        // Add new post to existing posts
+        let updatedPosts = [...jsonData, post];
+
+        // Trigger a download of the updated JSON file
+        downloadJSON(updatedPosts, "updatedPosts.json");
+    }
+
+    const downloadJSON = (data, filename) => {
+        const fileData = JSON.stringify(data, null, 4);
+        const blob = new Blob([fileData], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
 
     var modules = {
         toolbar: [
@@ -30,10 +78,6 @@ function CreatePost() {
         "list", "color", "bullet", "indent",
         "link", "image", "align", "size", "code-block",
     ];
-
-    const handleProcedureContentChange = (content) => {
-    console.log("content---->", content);
-    };
 
     return(
         <>
@@ -63,21 +107,47 @@ function CreatePost() {
             <div className="max-w-[960px] mx-auto w-full pb-10 md:pb-20 pt-20 box-content">
                 <h1 className="text-center text-3xl lg:text-5xl font-semibold py-20 md:pt-40">Create Post</h1>
 
+                
+
                 <div className="w-full mx-3">
-                    <ReactQuill
-                        className='h-72'
-                        theme="snow"
-                        modules={modules}
-                        formats={formats}
-                        placeholder="write your content ...."
-                        onChange={handleProcedureContentChange}
-                    >
-                    </ReactQuill>
+                    <form action="">
+                        <input
+                            type="text"
+                            className='bg-react-blue border p-2 mb-5 w-full'
+                            value={title}
+                            onChange={handleTitleChange}
+                            placeholder="Blog Title"
+                            required
+                        />
+
+                        <input
+                            type="file"
+                            className='bg-react-blue border p-2 mb-5 w-full'
+                            onChange={handleCoverImageChange}
+                            placeholder="Upload Cover Image"
+                        />
+
+                        <ReactQuill
+                            className='h-72'
+                            theme="snow"
+                            modules={modules}
+                            formats={formats}
+                            placeholder="write your content ...."
+                            onChange={handleProcedureContentChange}
+                        >
+                        </ReactQuill>
+
+                        <div className='flex justify-center lg:justify-end pt-32 md:pt-20'>
+                        <button 
+                                onClick={savePost}
+                                className='flex justify-center items-center border border-white/[0.1] bg-react-blue rounded-full w-28 h-9 shadow-md shadow-slate-950 text-sm text-center transition-colors duration-700 transform hover:bg-white hover:text-react-blue hover:border-transparent'>
+                                    Publish
+                            </button>
+                        </div>
+
+                    </form>
                 </div>
 
-                <div className='flex justify-center lg:justify-end pt-32 md:pt-20'>
-                    <button className='flex justify-center items-center border border-white/[0.1] bg-react-blue rounded-full w-28 h-9 shadow-md shadow-slate-950 text-sm text-center transition-colors duration-700 transform hover:bg-white hover:text-react-blue hover:border-transparent'>Publish</button>
-                </div>
             </div>
         </>
     )
