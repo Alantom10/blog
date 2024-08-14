@@ -10,7 +10,7 @@ function BlogPage() {
         window.scrollTo(0, 0);
     }, []);
 
-    const blogData = Data;
+    const blogData = Data[0];
     // const profileImage = require(`../assets/${blogData.author.profileImage}`);
     // const coverImage = require(`../assets/${blogData.coverImage}`);
 
