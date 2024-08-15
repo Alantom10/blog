@@ -7,6 +7,7 @@ function CreatePost() {
     const [content, setContent] = useState('');
     const [title, setTitle] = useState('');
     const [coverImage, setCoverImage] = useState('');
+    const [coverImageName, setCoverImageName] = useState('');
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -14,14 +15,28 @@ function CreatePost() {
 
     const handleProcedureContentChange = (content) => {
         setContent(content);
-    }
+    };
 
     const handleTitleChange = (e) => {
         setTitle(e.target.value);
-    }
+    };
 
     const handleCoverImageChange = (e) => {
-        setCoverImage(e.target.files[0] ? e.target.files[0].name : '');
+        // setCoverImage(e.target.files[0] ? e.target.files[0].name : '');
+
+        const file = e.target.files[0];
+    
+        if (file) {
+            setCoverImageName(file.name); // Update file name
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64String = reader.result;
+                setCoverImage(base64String);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            setCoverImageName(''); // Clear file name if no file is selected
+        }
     };
 
     const savePost = async (e) => {
@@ -131,12 +146,23 @@ function CreatePost() {
                             required
                         />
 
-                        <input
-                            type="file"
-                            className='bg-react-blue border p-2 mb-5 w-full'
-                            onChange={handleCoverImageChange}
-                            placeholder="Upload Cover Image"
-                        />
+                        <div className='border p-2 mb-5 w-full relative flex'>
+                            <label 
+                                for="upload-photo"
+                                className='flex justify-center items-center border border-white bg-react-blue rounded-full w-32 h-9 inline-block'>
+                                    Cover Image
+                            </label>
+                            <input
+                                    type="file"
+                                    name="photo"
+                                    id="upload-photo"
+                                    accept="image/*"
+                                    className='bg-react-blue opacity-0 absolute -z-10 left-10 top-1/2 transform -translate-y-1/2'
+                                    onChange={handleCoverImageChange}
+                                    placeholder="Upload Cover Image"
+                            />
+                            <span className='self-center ml-3'>{coverImageName ? `${coverImageName}` : 'No file selected'}</span>
+                        </div>
 
                         <ReactQuill
                             className='h-72'

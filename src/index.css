@@ -23,16 +23,6 @@ body {
   color: var(--text);
 }
 
-div.code,
-code {
-  background-color: var(--code-background);
-}
-
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
-}
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
