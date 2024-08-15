@@ -2,9 +2,6 @@ import { useEffect, useState } from 'react';
 import 'quill/dist/quill.snow.css';
 import ReactQuill from 'react-quill';
 import jsonData from '../data/mock.json';
-import htmlToJson from 'html-to-json';
-import $ from 'jquery';
-import writeFileSync from 'fs';
 
 function CreatePost() {
     const [content, setContent] = useState('');
@@ -27,10 +24,9 @@ function CreatePost() {
         setCoverImage(e.target.files[0] ? e.target.files[0].name : '');
     };
 
-    const savePost = async () => {
-        console.log("Content before parsing:", content)
+    const savePost = async (e) => {
+        e.preventDefault();
         try {
-            const parsedContent = await parseHtmlToJson(content);
 
             const post = {
                 title: title,
@@ -40,7 +36,7 @@ function CreatePost() {
                 },
                 coverImage: coverImage || '',
                 datePublished: new Date().toLocaleDateString(),
-                content: parsedContent
+                content: content
             };
     
             // Add new post to existing posts
@@ -53,69 +49,6 @@ function CreatePost() {
             console.error("Error parsing content:", error);
         }
     }
-
-    const parseHtmlToJson = async (html) => {
-        try {
-            const content = await htmlToJson.parse(html, {
-                'content': function ($doc) {
-                    const contentArray = [];
-                    $doc.find('p', 'h2', 'h3', 'pre', 'img').each(function() {
-                        const tag = this.tagName.toLowerCase();
-                        const elementText = $(this).contents().first().text();
-
-                        console.log($(this));
-                        console.log($(this).html());
-                        console.log($(this).html().trim());
-                        console.log($(this).contents());
-                        console.log(Object.keys($(this).contents()));
-                        console.log(Object.values($(this).contents()));
-                        console.log($(this).contents().first());
-                        console.log($(this).contents().first().text());
-
-                        if (tag === 'p' && elementText) {
-                            contentArray.push({ 
-                                type: 'paragraph',
-                                text: elementText,
-                                highlights: []
-                            });
-                        } else if (tag === 'h2' && elementText) {
-                            contentArray.push({
-                                type: 'heading',
-                                level: 2,
-                                text: elementText
-                            });
-                        } else if (tag === 'h3' && elementText) {
-                            contentArray.push({
-                                type: 'heading',
-                                level: 3,
-                                text: elementText
-                            });
-                        } else if (tag === 'pre' && elementText) {
-                            contentArray.push({
-                                type: "code",
-                                language: "javascript",
-                                code: elementText
-                            });
-                        } else if (tag === 'img') {
-                            const imgUrl = $(this).attr('src');
-                            if (imgUrl) {
-                                contentArray.push({
-                                    type: 'image',
-                                    url: imgUrl
-                                });    
-                            }
-                        }
-                    });
-                    return contentArray;
-                }
-            });
-            return content;
-
-        } catch (error) {
-            console.error("Error parsing HTML to JSON:", error);
-            return [];
-        }
-    };
 
     const downloadJSON = (data, filename) => {
         const fileData = JSON.stringify(data, null, 4);
@@ -188,7 +121,7 @@ function CreatePost() {
                 
 
                 <div className="w-full mx-3">
-                    <form action="">
+                    <form onSubmit={savePost}>
                         <input
                             type="text"
                             className='bg-react-blue border p-2 mb-5 w-full'
@@ -208,6 +141,7 @@ function CreatePost() {
                         <ReactQuill
                             className='h-72'
                             theme="snow"
+                            value={content}
                             modules={modules}
                             formats={formats}
                             placeholder="write your content ...."
@@ -217,7 +151,7 @@ function CreatePost() {
 
                         <div className='flex justify-center lg:justify-end pt-32 md:pt-20'>
                         <button 
-                                onClick={savePost}
+                                type="submit"
                                 className='flex justify-center items-center border border-white/[0.1] bg-react-blue rounded-full w-28 h-9 shadow-md shadow-slate-950 text-sm text-center transition-colors duration-700 transform hover:bg-white hover:text-react-blue hover:border-transparent'>
                                     Publish
                             </button>

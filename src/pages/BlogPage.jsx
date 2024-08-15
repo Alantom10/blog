@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
+import parse from 'html-react-parser';
 import Data from "../data/mock.json"
 
 import authorProfileImage from "../assets/alan-profile.JPG"
 import coverImage from "../assets/wd.jpg"
-import CompSci from "../assets/compsci.png"
 
 function BlogPage() {
     useEffect(() => {
@@ -14,50 +14,6 @@ function BlogPage() {
     // const profileImage = require(`../assets/${blogData.author.profileImage}`);
     // const coverImage = require(`../assets/${blogData.coverImage}`);
 
-    const renderParagraph = (text, highlights) => {
-        if (!highlights.length) return <p className="leading-7 text-lg mb-6">{ text }</p>;
-
-        const parts = text.split(new RegExp(`(${highlights.join('|')})`, 'g'));
-
-        return (
-            <p className="leading-7 text-lg mb-6">
-                {parts.map((part, i) =>
-                    highlights.includes(part) ? (
-                        <code key={i} className="rounded px-2 py-0.5">{ part }</code>
-                    ) : (
-                        part
-                    )
-                )}
-            </p>
-        )
-    }
-
-    const renderContent = (content) => {
-        return content.map((block, index) => {
-            switch (block.type) {
-                case 'heading':
-                    const HeadingTag = `h${block.level}`;
-                    return <HeadingTag key={index} className="text-2xl font-semibold mb-4">{ block.text }</HeadingTag>
-                case 'paragraph':
-                    return <div key={index}>{ renderParagraph(block.text, block.highlights) }</div>
-                case 'code':
-                    return (
-                        <div className="code rounded-lg">
-                            <pre key={index} className="text-white p-4 rounded-lg mb-6">
-                                <code>{ block.code }</code>
-                            </pre>
-                        </div>
-                    );
-                // case 'image':
-                //     return <img src={ require(`../assets/${block.url}`) } alt="Example" className="w-full rounded-md mt-10 mb-6" />
-                case 'image':
-                    return <img src={ CompSci } alt="Example" className="w-full rounded-md mt-10 mb-6"/>
-                default:
-                    return null;
-            }
-        });
-    };
-    
     return (
         <>
             <style>
@@ -81,7 +37,7 @@ function BlogPage() {
 
                 <img src={ coverImage } alt={`${blogData.title} cover`} className="w-full rounded-md mt-20 mb-10" />
                 
-                { renderContent(blogData.content) }
+                { parse(blogData.content) }
 
             </div>
         </>
