@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import 'quill/dist/quill.snow.css';
 import ReactQuill from 'react-quill';
 import jsonData from '../data/mock.json';
+import htmlToJson from 'html-to-json';
+import $ from 'jquery';
+import writeFileSync from 'fs';
 
 function CreatePost() {
     const [content, setContent] = useState('');
@@ -24,24 +27,95 @@ function CreatePost() {
         setCoverImage(e.target.files[0] ? e.target.files[0].name : '');
     };
 
-    const savePost = () => {
-        const post = {
-            title: title,
-            author: {
-                name: "Alan Thomas",
-                profileImageUrl: "alan-profile.JPG",
-            },
-            coverImage: coverImage || '',
-            datePublished: new Date().toLocaleDateString(),
-            content: content
-        };
+    const savePost = async () => {
+        console.log("Content before parsing:", content)
+        try {
+            const parsedContent = await parseHtmlToJson(content);
 
-        // Add new post to existing posts
-        let updatedPosts = [...jsonData, post];
+            const post = {
+                title: title,
+                author: {
+                    name: "Alan Thomas",
+                    profileImageUrl: "alan-profile.JPG",
+                },
+                coverImage: coverImage || '',
+                datePublished: new Date().toLocaleDateString(),
+                content: parsedContent
+            };
+    
+            // Add new post to existing posts
+            let updatedPosts = [...jsonData, post];
+    
+            // Trigger a download of the updated JSON file
+            downloadJSON(updatedPosts, "mock.json");  
 
-        // Trigger a download of the updated JSON file
-        downloadJSON(updatedPosts, "updatedPosts.json");
+        } catch (error) {
+            console.error("Error parsing content:", error);
+        }
     }
+
+    const parseHtmlToJson = async (html) => {
+        try {
+            const content = await htmlToJson.parse(html, {
+                'content': function ($doc) {
+                    const contentArray = [];
+                    $doc.find('p', 'h2', 'h3', 'pre', 'img').each(function() {
+                        const tag = this.tagName.toLowerCase();
+                        const elementText = $(this).contents().first().text();
+
+                        console.log($(this));
+                        console.log($(this).html());
+                        console.log($(this).html().trim());
+                        console.log($(this).contents());
+                        console.log(Object.keys($(this).contents()));
+                        console.log(Object.values($(this).contents()));
+                        console.log($(this).contents().first());
+                        console.log($(this).contents().first().text());
+
+                        if (tag === 'p' && elementText) {
+                            contentArray.push({ 
+                                type: 'paragraph',
+                                text: elementText,
+                                highlights: []
+                            });
+                        } else if (tag === 'h2' && elementText) {
+                            contentArray.push({
+                                type: 'heading',
+                                level: 2,
+                                text: elementText
+                            });
+                        } else if (tag === 'h3' && elementText) {
+                            contentArray.push({
+                                type: 'heading',
+                                level: 3,
+                                text: elementText
+                            });
+                        } else if (tag === 'pre' && elementText) {
+                            contentArray.push({
+                                type: "code",
+                                language: "javascript",
+                                code: elementText
+                            });
+                        } else if (tag === 'img') {
+                            const imgUrl = $(this).attr('src');
+                            if (imgUrl) {
+                                contentArray.push({
+                                    type: 'image',
+                                    url: imgUrl
+                                });    
+                            }
+                        }
+                    });
+                    return contentArray;
+                }
+            });
+            return content;
+
+        } catch (error) {
+            console.error("Error parsing HTML to JSON:", error);
+            return [];
+        }
+    };
 
     const downloadJSON = (data, filename) => {
         const fileData = JSON.stringify(data, null, 4);
@@ -57,10 +131,10 @@ function CreatePost() {
 
     var modules = {
         toolbar: [
-            [{ size: ["small", false, "large", "huge"] }],
+            [{ 'header': [2, 3, false] }],
+            [{ 'font': [] }],
+            // [{ size: ["small", false, "large", "huge"] }],
             ["bold", "italic", "underline", "strike", "blockquote"],
-            [{ list: "ordered" }, { list: "bullet" }],
-            ["link", "image", "code-block"],
             [
                 { list: "ordered" },
                 { list: "bullet" },
@@ -68,15 +142,19 @@ function CreatePost() {
                 { indent: "+1" },
                 { align: [] }
             ],
+            ["link", "image", 'video', "code-block"],
             [{ "color": ["#000000", "#e60000", "#ff9900", "#ffff00", "#008a00", "#0066cc", "#9933ff", "#ffffff", "#facccc", "#ffebcc", "#ffffcc", "#cce8cc", "#cce0f5", "#ebd6ff", "#bbbbbb", "#f06666", "#ffc266", "#ffff66", "#66b966", "#66a3e0", "#c285ff", "#888888", "#a10000", "#b26b00", "#b2b200", "#006100", "#0047b2", "#6b24b2", "#444444", "#5c0000", "#663d00", "#666600", "#003700", "#002966", "#3d1466", 'custom-color'] }],
+            ['clean']
         ]
     };
 
     var formats = [
-        "header", "height", "bold", "italic",
+        "header", "font", 
+        // "height",
+        "bold", "italic",
         "underline", "strike", "blockquote",
         "list", "color", "bullet", "indent",
-        "link", "image", "align", "size", "code-block",
+        "link", "image", "video", "align", "size", "code-block",
     ];
 
     return(

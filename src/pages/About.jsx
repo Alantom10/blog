@@ -20,7 +20,7 @@ function About() {
                 <h1 className="text-3xl lg:text-5xl font-semibold py-20 md:pt-40">About</h1>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                     <div>
-                        <img src={authorProfileImage} alt="Alan Thomas profile picture" className="w-full h-full object-cover rounded-xl shadow-custom" />
+                        <img src={authorProfileImage} alt="Alan Thomas profile" className="w-full h-full object-cover rounded-xl shadow-custom" />
                     </div>
                     <div>
                         <h2 className="text-xl lg:text-3xl font-semibold italic pb-6">Hi, I’m Alan! Web Development and Media Design Instructor.</h2>
