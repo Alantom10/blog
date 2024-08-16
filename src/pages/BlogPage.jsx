@@ -3,7 +3,6 @@ import parse from 'html-react-parser';
 import Data from "../data/mock.json"
 
 import authorProfileImage from "../assets/alan-profile.JPG"
-import coverImage from "../assets/wd.jpg"
 
 function BlogPage() {
     useEffect(() => {
