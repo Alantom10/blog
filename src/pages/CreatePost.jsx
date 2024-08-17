@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import 'quill/dist/quill.snow.css';
 import ReactQuill from 'react-quill';
 import jsonData from '../data/mock.json';
+import PreviewPost from '../components/PreviewPost';
 
 function CreatePost() {
     const [content, setContent] = useState('');
     const [title, setTitle] = useState('');
     const [coverImage, setCoverImage] = useState('');
     const [coverImageName, setCoverImageName] = useState('');
+    const [showPreview, setShowPreview] = useState(false);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -22,7 +24,6 @@ function CreatePost() {
     };
 
     const handleCoverImageChange = (e) => {
-        // setCoverImage(e.target.files[0] ? e.target.files[0].name : '');
 
         const file = e.target.files[0];
     
@@ -38,6 +39,15 @@ function CreatePost() {
             setCoverImageName(''); // Clear file name if no file is selected
         }
     };
+
+    const togglePreview = () => {
+        setShowPreview(!showPreview);
+        if (!showPreview) {
+            document.body.classList.add('no-scroll');
+        } else {
+            document.body.classList.remove('no-scroll');
+        }
+    }
 
     const savePost = async (e) => {
         e.preventDefault();
@@ -80,7 +90,7 @@ function CreatePost() {
     var modules = {
         toolbar: [
             [{ 'header': [2, 3, false] }],
-            [{ 'font': [] }],
+            // [{ 'font': [] }],
             // [{ size: ["small", false, "large", "huge"] }],
             ["bold", "italic", "underline", "strike", "blockquote"],
             [
@@ -97,8 +107,8 @@ function CreatePost() {
     };
 
     var formats = [
-        "header", "font", 
-        // "height",
+        "header", 
+        // "font", "height",
         "bold", "italic",
         "underline", "strike", "blockquote",
         "list", "color", "bullet", "indent",
@@ -175,8 +185,14 @@ function CreatePost() {
                         >
                         </ReactQuill>
 
-                        <div className='flex justify-center lg:justify-end pt-32 md:pt-20'>
-                        <button 
+                        <div className='h-20 box-content flex flex-col justify-between items-center lg:flex-row lg:justify-between pt-32 md:pt-20'>
+                            <button 
+                                type="button"
+                                onClick={togglePreview}
+                                className='flex justify-center items-center border border-white/[0.1] bg-react-blue rounded-full w-28 h-9 shadow-md shadow-slate-950 text-sm text-center transition-colors duration-700 transform hover:bg-white hover:text-react-blue hover:border-transparent'>
+                                    Preview
+                            </button>
+                            <button 
                                 type="submit"
                                 className='flex justify-center items-center border border-white/[0.1] bg-react-blue rounded-full w-28 h-9 shadow-md shadow-slate-950 text-sm text-center transition-colors duration-700 transform hover:bg-white hover:text-react-blue hover:border-transparent'>
                                     Publish
@@ -185,6 +201,21 @@ function CreatePost() {
 
                     </form>
                 </div>
+
+                {showPreview && (
+                    <div className="fixed inset-0 z-40 bg-black bg-opacity-50 pointer-events-auto"></div> // Prevents clicks on the create post page
+                )}
+
+                {showPreview && (
+                    <PreviewPost 
+                        title={title} 
+                        author = {{name: "Alan Thomas", profileImageUrl: "alan-profile.JPG"}}
+                        coverImage={coverImage}
+                        datePublished={new Date().toLocaleDateString()} 
+                        content={content} 
+                        onClose={togglePreview} 
+                    />
+                )}
 
             </div>
         </>

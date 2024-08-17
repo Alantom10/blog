@@ -52,7 +52,7 @@ function BlogPage() {
                 <h1 className="text-3xl lg:text-5xl font-semibold py-10 md:pt-40 text-center">{ blogData.title }</h1>
 
                 <div className="flex font-light items-center justify-center">
-                    <img src={ authorProfileImage } alt="`Alan Thomas' profile`" className="rounded-full w-12 h-12 mr-2" />
+                    <img src={ authorProfileImage } alt={`${blogData.author.name}' profile`} className="rounded-full w-12 h-12 mr-2" />
                     <h4 className="px-2 text-xl">{ blogData.author.name }</h4>
                     <div className="text-slate-500 px-2">•</div>
                     <p className="text-slate-500 px-2 font-light">{ blogData.datePublished }</p>
