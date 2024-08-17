@@ -7,6 +7,7 @@ import PreviewPost from '../components/PreviewPost';
 function CreatePost() {
     const [content, setContent] = useState('');
     const [title, setTitle] = useState('');
+    const [slug, setSlug] = useState("");
     const [coverImage, setCoverImage] = useState('');
     const [coverImageName, setCoverImageName] = useState('');
     const [showPreview, setShowPreview] = useState(false);
@@ -20,7 +21,10 @@ function CreatePost() {
     };
 
     const handleTitleChange = (e) => {
-        setTitle(e.target.value);
+        const newTitle = e.target.value;
+        setTitle(newTitle);
+        var slug = require('slug');
+        setSlug(slug(newTitle));
     };
 
     const handleCoverImageChange = (e) => {
@@ -55,6 +59,7 @@ function CreatePost() {
 
             const post = {
                 title: title,
+                slug: slug,
                 author: {
                     name: "Alan Thomas",
                     profileImageUrl: "alan-profile.JPG",
@@ -154,6 +159,13 @@ function CreatePost() {
                             onChange={handleTitleChange}
                             placeholder="Blog Title"
                             required
+                        />
+
+                        <input
+                            type="text"
+                            className='bg-react-blue border p-2 mb-5 w-full'
+                            value={slug}
+                            placeholder="Blog Slug"
                         />
 
                         <div className='border p-2 mb-5 w-full relative flex'>
