@@ -10,8 +10,6 @@ function BlogPage() {
     }, []);
 
     const blogData = Data[0];
-    // const profileImage = require(`../assets/${blogData.author.profileImage}`);
-    // const coverImage = require(`../assets/${blogData.coverImage}`);
 
     return (
         <>
