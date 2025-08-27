@@ -9,7 +9,6 @@ class Author(BaseModel):
 
 
 class Blog(BaseModel):
-    id: Optional[str]
     title: str
     slug: str
     author: Author
@@ -17,4 +16,11 @@ class Blog(BaseModel):
     date_published: datetime
     content: str
     tags: List[str] = []
-    is_published: bool = False
+
+
+class BlogResponse(Blog):
+    id: str
+    is_published: bool = True
+
+    class Config:
+        orm_mode = True
