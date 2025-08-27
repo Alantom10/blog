@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routes import blogs
+from app.routes import blogs
 
 app = FastAPI()
 

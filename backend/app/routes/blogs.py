@@ -2,7 +2,7 @@ from datetime import datetime
 from uuid import uuid4
 from fastapi import APIRouter, HTTPException
 from typing import List
-from models.blog import Blog, BlogResponse
+from app.models.blog import Author, Blog, BlogResponse
 from starlette import status
 
 
@@ -12,7 +12,30 @@ router = APIRouter(
 )
 
 
-mock_posts: List[BlogResponse] = []
+mock_posts: List[BlogResponse] = [
+    BlogResponse(
+        id="1",
+        title="Understanding React Hooks",
+        slug="understanding-react-hooks",
+        author=Author(name="Alan Thomas", image="https://decisionsystemsgroup.github.io/workshop-html/img/john-doe.jpg"),
+        cover_image=None,
+        date_published=datetime(2024, 8, 15),
+        content="<p>React Hooks were introduced...</p>",
+        tags=["react", "hooks"],
+        is_published=True
+    ),
+    BlogResponse(
+        id="2",
+        title="FastAPI Tips",
+        slug="fastapi-tips",
+        author=Author(name="Alan Thomas"),
+        cover_image=None,
+        date_published=datetime(2024, 8, 20),
+        content="<p>Some FastAPI tips...</p>",
+        tags=["fastapi", "python"],
+        is_published=True
+    )
+]
 
 
 # CREATE
@@ -49,7 +72,7 @@ def get_blog(slug: str):
 
 
 # UPDATE
-@router.put("/{slug}", response_model=BlogResponse, status_code=status.HTTP_204_NO_CONTENT)
+@router.put("/{slug}", response_model=BlogResponse, status_code=status.HTTP_200_OK)
 def update_blog(slug: str, blog: Blog):
     for i in range(len(mock_posts)):
         if mock_posts[i].slug == slug:
@@ -70,8 +93,8 @@ def update_blog(slug: str, blog: Blog):
     
 
 #DELETE
-@router.delete("/{slug}")
-def delte_blog(slug: str):
+@router.delete("/{slug}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_blog(slug: str):
     for i in range(len(mock_posts)):
         if mock_posts[i].slug == slug:
             mock_posts.pop(i)
