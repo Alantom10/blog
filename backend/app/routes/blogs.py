@@ -1,7 +1,9 @@
 from datetime import datetime
 from uuid import uuid4
 from fastapi import APIRouter, HTTPException
-from typing import List
+from typing import Any, Dict, List
+
+from pydantic import BaseModel, HttpUrl
 from app.models.blog import Author, Blog, BlogResponse
 from app.database import blogs_collection
 from starlette import status
@@ -14,18 +16,43 @@ router = APIRouter(
 
 
 
+def serialize_for_mongo(model: BaseModel) -> Dict[str, Any]:
+    """
+    Converts a Pydantic model into a dict that can be safely inserted into MongoDB.
+    - Converts HttpUrl fields to string
+    """
+    data = model.model_dump()  # get dict from Pydantic model
+
+    # Recursively convert HttpUrl to str
+    def convert(obj):
+        if isinstance(obj, HttpUrl):
+            return str(obj)
+        elif isinstance(obj, dict):
+            return {k: convert(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [convert(i) for i in obj]
+        else:
+            return obj
+
+    return convert(data)
+
+
 # CREATE
 @router.post("", response_model=BlogResponse, status_code=status.HTTP_201_CREATED)
 def create_blog(blog: Blog):
-    blog_dict = blog.model_dump()
+    blog_dict = serialize_for_mongo(blog)
     result = blogs_collection.insert_one(blog_dict)
-    return BlogResponse(**blog_dict, id=str(result.inserted_id))
+    created_blog = blogs_collection.find_one({"_id": result.inserted_id})
+    return BlogResponse(**created_blog, id=str(created_blog["_id"]))
 
 
 # READ ALL
 @router.get("", response_model=List[BlogResponse], status_code=status.HTTP_200_OK)
 def get_blogs():
     blogs = list(blogs_collection.find())
+    for blog in blogs:
+        blog["id"]= str(blog["_id"])
+        del blog["_id"]
     return blogs
 
 
@@ -34,6 +61,8 @@ def get_blogs():
 def get_blog(slug: str):
     blog = blogs_collection.find_one({"slug": slug})
     if blog:
+        blog["id"] = str(blog["_id"])
+        del blog["_id"]
         return blog
     raise HTTPException(status_code=404, detail='Item not found')
 
@@ -41,11 +70,12 @@ def get_blog(slug: str):
 # UPDATE
 @router.put("/{slug}", response_model=BlogResponse, status_code=status.HTTP_200_OK)
 def update_blog(slug: str, blog: Blog):
-    result = blogs_collection.update_one({"slug": slug}, {"$set": blog.model_dump()})
+    blog_dict = serialize_for_mongo(blog)
+    result = blogs_collection.update_one({"slug": slug}, {"$set": blog_dict})
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail='Item not found')
-    updated_result = blogs_collection.find_one({"slug": slug})
-    return BlogResponse(**updated_result, id=str(updated_result["_id"]))
+    updated_blog = blogs_collection.find_one({"slug": slug})
+    return BlogResponse(**updated_blog, id=str(updated_blog["_id"]))
     
 
 #DELETE
