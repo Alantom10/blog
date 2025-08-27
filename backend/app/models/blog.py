@@ -23,4 +23,4 @@ class BlogResponse(Blog):
     is_published: bool = True
 
     class Config:
-        orm_mode = True
+        from_attributes = True
