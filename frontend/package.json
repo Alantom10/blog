@@ -16,6 +16,7 @@
     "html-to-json": "^0.6.0",
     "https-browserify": "^1.0.0",
     "jquery": "^3.7.1",
+    "ldrs": "^1.1.7",
     "path-browserify": "^1.0.1",
     "process": "^0.11.10",
     "querystring-es3": "^0.2.1",

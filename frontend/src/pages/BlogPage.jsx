@@ -5,9 +5,12 @@ import { getBlogBySlug } from "../api/blogsApi";
 import authorProfileImage from "../assets/alan-profile.JPG";
 import blogCoverImage from "../assets/wd.jpg";
 import { useParams } from 'react-router-dom';
+import { Helix } from 'ldrs/react';
+import 'ldrs/react/Helix.css';
 
 
 function BlogPage() {
+    const [loading, setLoading] = useState(true);
     const { slug } = useParams();
     const [blog, setBlog] = useState(null);
     const [error, setError] = useState(null);
@@ -17,6 +20,7 @@ function BlogPage() {
             try {
                 const data = await getBlogBySlug(slug);
                 setBlog(data);
+                setLoading(false);
             } catch (err) {
                 setError(err.message);
             }
@@ -25,8 +29,19 @@ function BlogPage() {
         window.scrollTo(0, 0);
     }, [slug]);
 
-    if (error) return <p>Error: {error}</p>;
-    if (blog === null) return <p>Loading blogs...</p>;
+    if (error) return <p className="w-full h-[60vh] content-center text-center">Error: {error}</p>;
+
+    if (loading) {
+        return (
+            <div className="w-full h-[60vh] content-center text-center">
+                <Helix
+                    size="150"
+                    speed="2.5"
+                    color="white" 
+                />
+            </div>
+        );
+    }
 
     return (
         <>

@@ -35,21 +35,6 @@ def serialize_for_mongo(model: BaseModel) -> Dict[str, Any]:
     return convert(data)
 
 
-# CREATE
-@router.post("", response_model=BlogResponse, status_code=status.HTTP_201_CREATED)
-def create_blog(blog: Blog):
-    blog_dict = serialize_for_mongo(blog)
-    try:
-        result = blogs_collection.insert_one(blog_dict)
-    except DuplicateKeyError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="A blog with this slug already exists."
-        )
-    created_blog = blogs_collection.find_one({"_id": result.inserted_id})
-    return BlogResponse(**created_blog, id=str(created_blog["_id"]))
-
-
 # READ ALL
 @router.get("", response_model=List[BlogResponse], status_code=status.HTTP_200_OK)
 def get_blogs(skip: int = 0, limit: int = 10):
@@ -69,6 +54,21 @@ def get_blog(slug: str):
         del blog["_id"]
         return blog
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Item not found')
+
+
+# CREATE
+@router.post("", response_model=BlogResponse, status_code=status.HTTP_201_CREATED)
+def create_blog(blog: Blog):
+    blog_dict = serialize_for_mongo(blog)
+    try:
+        result = blogs_collection.insert_one(blog_dict)
+    except DuplicateKeyError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A blog with this slug already exists."
+        )
+    created_blog = blogs_collection.find_one({"_id": result.inserted_id})
+    return BlogResponse(**created_blog, id=str(created_blog["_id"]))
 
 
 # UPDATE

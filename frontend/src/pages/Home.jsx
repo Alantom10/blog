@@ -3,8 +3,12 @@ import authorProfileImage from "../assets/alan-profile.JPG"
 import blogCoverImage from "../assets/wd.jpg";
 import { useEffect, useState } from "react";
 import { getBlogs } from "../api/blogsApi";
+import { Helix } from 'ldrs/react';
+import 'ldrs/react/Helix.css';
+
 
 function Home() {
+    const [loading, setLoading] = useState(true);
     const [blogs, setBlogs] = useState([]);
     const [error, setError] = useState(null);
 
@@ -13,6 +17,7 @@ function Home() {
             try {
                 const data = await getBlogs();
                 setBlogs(data);
+                setLoading(false);
             } catch (err) {
                 setError(err.message);
             }
@@ -20,8 +25,19 @@ function Home() {
         fetchData();
     }, []);
 
-    if (error) return <p>Error: {error}</p>;
-    if (blogs.length === 0) return <p>Loading blogs...</p>;
+    if (error) return <p className="w-full h-[60vh] content-center text-center">Error: {error}</p>;
+
+    if (loading) {
+        return (
+            <div className="w-full h-[60vh] content-center text-center">
+                <Helix
+                    size="150"
+                    speed="2.5"
+                    color="white" 
+                />
+            </div>
+        );
+    }
 
     function formatDate(dateString) {
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
