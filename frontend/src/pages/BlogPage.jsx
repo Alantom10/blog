@@ -5,8 +5,7 @@ import { getBlogBySlug } from "../api/blogsApi";
 import authorProfileImage from "../assets/alan-profile.JPG";
 import blogCoverImage from "../assets/wd.jpg";
 import { useParams } from 'react-router-dom';
-import { Helix } from 'ldrs/react';
-import 'ldrs/react/Helix.css';
+import Spinner from '../components/Spinner';
 
 
 function BlogPage() {
@@ -30,18 +29,6 @@ function BlogPage() {
     }, [slug]);
 
     if (error) return <p className="w-full h-[60vh] content-center text-center">Error: {error}</p>;
-
-    if (loading) {
-        return (
-            <div className="w-full h-[60vh] content-center text-center">
-                <Helix
-                    size="150"
-                    speed="2.5"
-                    color="white" 
-                />
-            </div>
-        );
-    }
 
     function formatDate(dateString) {
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -84,21 +71,26 @@ function BlogPage() {
                     }
                 `}
             </style>
-            <div className="max-w-[960px] mx-auto w-full pb-10 md:pb-20 pt-20 px-10 box-content">
-                <h1 className="text-3xl lg:text-5xl font-semibold py-10 md:pt-40 text-center">{ blog.title }</h1>
+            
+            { loading ? (
+                <Spinner/>
+            ) : (
+                <div className="max-w-[960px] mx-auto w-full pb-10 md:pb-20 pt-20 px-10 box-content">
+                    <h1 className="text-3xl lg:text-5xl font-semibold py-10 md:pt-40 text-center">{ blog.title }</h1>
 
-                <div className="flex font-light items-center justify-center">
-                    <img src={ authorProfileImage } alt={`${blog.author.name}' profile`} className="rounded-full w-12 h-12 mr-2" />
-                    <h4 className="px-2 text-xl">{ blog.author.name }</h4>
-                    <div className="text-slate-500 px-2">•</div>
-                    <p className="text-slate-500 px-2 font-light">{ formatDate(blog.date_published) }</p>
+                    <div className="flex font-light items-center justify-center">
+                        <img src={ authorProfileImage } alt={`${blog.author.name}' profile`} className="rounded-full w-12 h-12 mr-2" />
+                        <h4 className="px-2 text-xl">{ blog.author.name }</h4>
+                        <div className="text-slate-500 px-2">•</div>
+                        <p className="text-slate-500 px-2 font-light">{ formatDate(blog.date_published) }</p>
+                    </div>
+
+                    <img src={ blogCoverImage } alt={`${blog.title} cover`} className="w-full rounded-md mt-20 mb-10" />
+                    
+                    { parse(blog.content) }
+
                 </div>
-
-                <img src={ blogCoverImage } alt={`${blog.title} cover`} className="w-full rounded-md mt-20 mb-10" />
-                
-                { parse(blog.content) }
-
-            </div>
+            )}
         </>
     )
 }

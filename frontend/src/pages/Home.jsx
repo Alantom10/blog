@@ -3,8 +3,7 @@ import authorProfileImage from "../assets/alan-profile.JPG"
 import blogCoverImage from "../assets/wd.jpg";
 import { useEffect, useState } from "react";
 import { getBlogs } from "../api/blogsApi";
-import { Helix } from 'ldrs/react';
-import 'ldrs/react/Helix.css';
+import Spinner from "../components/Spinner";
 
 
 function Home() {
@@ -27,18 +26,6 @@ function Home() {
 
     if (error) return <p className="w-full h-[60vh] content-center text-center">Error: {error}</p>;
 
-    if (loading) {
-        return (
-            <div className="w-full h-[60vh] content-center text-center">
-                <Helix
-                    size="150"
-                    speed="2.5"
-                    color="white" 
-                />
-            </div>
-        );
-    }
-
     function formatDate(dateString) {
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
         const date = new Date(dateString);
@@ -58,24 +45,30 @@ function Home() {
     }    
 
     return (
-        <div className="max-w-[960px] mx-auto w-full pb-10 md:pb-20 pt-20 px-10 box-content">
-            <div className="grid grid-cols-12 grid-rows-layout gap-[50px] py-20 md:pt-40">
-            {blogs.map((blog, index) => (
-                    <Card
-                        key={blog.slug}
-                        slug={blog.slug}
-                        title={blog.title}
-                        intro={generateIntro(blog.content, 20)}
-                        // coverImage={blog.coverImage}  // Use blog.coverImage if coverImage URLs are in JSON
-                        coverImage={blogCoverImage}
-                        authorName={blog.author.name}
-                        authorProfileImage={authorProfileImage}  // Use blog.authorProfileImage if URLs are in JSON
-                        datePublished={formatDate(blog.date_published)}
-                        layoutType={index % 3 === 0 ? 'main' : 'normal'}
-                    />
-                ))}
-            </div>
-        </div>
+        <>
+            { loading ? (
+                <Spinner/>
+            ) : (
+                <div className="max-w-[960px] mx-auto w-full pb-10 md:pb-20 pt-20 px-10 box-content">
+                    <div className="grid grid-cols-12 grid-rows-layout gap-[50px] py-20 md:pt-40">
+                    {blogs.map((blog, index) => (
+                            <Card
+                                key={blog.slug}
+                                slug={blog.slug}
+                                title={blog.title}
+                                intro={generateIntro(blog.content, 20)}
+                                // coverImage={blog.coverImage}  // Use blog.coverImage if coverImage URLs are in JSON
+                                coverImage={blogCoverImage}
+                                authorName={blog.author.name}
+                                authorProfileImage={authorProfileImage}  // Use blog.authorProfileImage if URLs are in JSON
+                                datePublished={formatDate(blog.date_published)}
+                                layoutType={index % 3 === 0 ? 'main' : 'normal'}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
+        </>
     )
 };
 
