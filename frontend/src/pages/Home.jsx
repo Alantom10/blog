@@ -1,5 +1,4 @@
 import Card from "../components/Card";
-// import Data from "../data/mock.json"
 import authorProfileImage from "../assets/alan-profile.JPG"
 import blogCoverImage from "../assets/wd.jpg";
 import { useEffect, useState } from "react";
@@ -48,6 +47,7 @@ function Home() {
             {blogs.map((blog, index) => (
                     <Card
                         key={blog.slug}
+                        slug={blog.slug}
                         title={blog.title}
                         intro={generateIntro(blog.content, 20)}
                         // coverImage={blog.coverImage}  // Use blog.coverImage if coverImage URLs are in JSON

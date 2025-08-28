@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
 
-function Card({ title, intro, coverImage, authorName, authorProfileImage, datePublished, layoutType }) {
+function Card({ slug, title, intro, coverImage, authorName, authorProfileImage, datePublished, layoutType }) {
     return (
         <>
             { layoutType === 'main' ? (
-                <Link to="/blog-page" className="col-span-12 row-span-3">
+                <Link to={`/blog/${slug}`} className="col-span-12 row-span-3">
                     <div className="flex rounded-md shadow-custom transition-shadow duration-700 transform hover:shadow-md hover:shadow-slate-950">
                         <div className="p-10 flex flex-col">
                             <h2 className="text-3xl lg:text-5xl font-semibold pb-8"> {title} </h2>
@@ -21,7 +21,7 @@ function Card({ title, intro, coverImage, authorName, authorProfileImage, datePu
                     </div>
                 </Link>
             ) : (
-                <Link to="/blog-page" className=" col-span-6 row-span-4">
+                <Link to={`/blog/${slug}`} className=" col-span-6 row-span-4">
                     <div className="flex flex-col rounded-md shadow-custom transition-shadow duration-700 transform hover:shadow-md hover:shadow-slate-950">
                         <img src={coverImage} alt={`${title} cover`} className="object-cover rounded-t-md" />
                         <div className="p-7 flex flex-col">

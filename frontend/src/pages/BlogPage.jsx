@@ -1,15 +1,32 @@
-import { useEffect } from 'react';
 import parse from 'html-react-parser';
-import Data from "../data/mock.json"
+import { useEffect, useState } from "react";
+import { getBlogBySlug } from "../api/blogsApi";
 
-import authorProfileImage from "../assets/alan-profile.JPG"
+import authorProfileImage from "../assets/alan-profile.JPG";
+import blogCoverImage from "../assets/wd.jpg";
+import { useParams } from 'react-router-dom';
+
 
 function BlogPage() {
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, []);
+    const { slug } = useParams();
+    const [blog, setBlog] = useState(null);
+    const [error, setError] = useState(null);
 
-    const blogData = Data[0];
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const data = await getBlogBySlug(slug);
+                setBlog(data);
+            } catch (err) {
+                setError(err.message);
+            }
+        }
+        fetchData();
+        window.scrollTo(0, 0);
+    }, [slug]);
+
+    if (error) return <p>Error: {error}</p>;
+    if (blog === null) return <p>Loading blogs...</p>;
 
     return (
         <>
@@ -47,18 +64,18 @@ function BlogPage() {
                 `}
             </style>
             <div className="max-w-[960px] mx-auto w-full pb-10 md:pb-20 pt-20 px-10 box-content">
-                <h1 className="text-3xl lg:text-5xl font-semibold py-10 md:pt-40 text-center">{ blogData.title }</h1>
+                <h1 className="text-3xl lg:text-5xl font-semibold py-10 md:pt-40 text-center">{ blog.title }</h1>
 
                 <div className="flex font-light items-center justify-center">
-                    <img src={ authorProfileImage } alt={`${blogData.author.name}' profile`} className="rounded-full w-12 h-12 mr-2" />
-                    <h4 className="px-2 text-xl">{ blogData.author.name }</h4>
+                    <img src={ authorProfileImage } alt={`${blog.author.name}' profile`} className="rounded-full w-12 h-12 mr-2" />
+                    <h4 className="px-2 text-xl">{ blog.author.name }</h4>
                     <div className="text-slate-500 px-2">•</div>
-                    <p className="text-slate-500 px-2 font-light">{ blogData.datePublished }</p>
+                    <p className="text-slate-500 px-2 font-light">{ blog.datePublished }</p>
                 </div>
 
-                <img src={ blogData.coverImage } alt={`${blogData.title} cover`} className="w-full rounded-md mt-20 mb-10" />
+                <img src={ blogCoverImage } alt={`${blog.title} cover`} className="w-full rounded-md mt-20 mb-10" />
                 
-                { parse(blogData.content) }
+                { parse(blog.content) }
 
             </div>
         </>
