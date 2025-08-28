@@ -43,6 +43,12 @@ function BlogPage() {
         );
     }
 
+    function formatDate(dateString) {
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', options);
+    }
+
     return (
         <>
             <style>
@@ -85,7 +91,7 @@ function BlogPage() {
                     <img src={ authorProfileImage } alt={`${blog.author.name}' profile`} className="rounded-full w-12 h-12 mr-2" />
                     <h4 className="px-2 text-xl">{ blog.author.name }</h4>
                     <div className="text-slate-500 px-2">•</div>
-                    <p className="text-slate-500 px-2 font-light">{ blog.datePublished }</p>
+                    <p className="text-slate-500 px-2 font-light">{ formatDate(blog.date_published) }</p>
                 </div>
 
                 <img src={ blogCoverImage } alt={`${blog.title} cover`} className="w-full rounded-md mt-20 mb-10" />
