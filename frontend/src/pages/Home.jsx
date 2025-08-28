@@ -1,8 +1,29 @@
 import Card from "../components/Card";
-import Data from "../data/mock.json"
+// import Data from "../data/mock.json"
 import authorProfileImage from "../assets/alan-profile.JPG"
+import blogCoverImage from "../assets/wd.jpg";
+import { useEffect, useState } from "react";
+import { getBlogs } from "../api/blogsApi";
 
 function Home() {
+    const [blogs, setBlogs] = useState([]);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const data = await getBlogs();
+                setBlogs(data);
+            } catch (err) {
+                setError(err.message);
+            }
+        }
+        fetchData();
+    }, []);
+
+    if (error) return <p>Error: {error}</p>;
+    if (blogs.length === 0) return <p>Loading blogs...</p>;
+
     function formatDate(dateString) {
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
         const date = new Date(dateString);
@@ -24,15 +45,16 @@ function Home() {
     return (
         <div className="max-w-[960px] mx-auto w-full pb-10 md:pb-20 pt-20 px-10 box-content">
             <div className="grid grid-cols-12 grid-rows-layout gap-[50px] py-20 md:pt-40">
-            {Data.map((blog, index) => (
+            {blogs.map((blog, index) => (
                     <Card
-                        key={index}
+                        key={blog.slug}
                         title={blog.title}
                         intro={generateIntro(blog.content, 20)}
-                        coverImage={blog.coverImage}  // Use blog.coverImage if coverImage URLs are in JSON
+                        // coverImage={blog.coverImage}  // Use blog.coverImage if coverImage URLs are in JSON
+                        coverImage={blogCoverImage}
                         authorName={blog.author.name}
                         authorProfileImage={authorProfileImage}  // Use blog.authorProfileImage if URLs are in JSON
-                        datePublished={formatDate(blog.datePublished)}
+                        datePublished={formatDate(blog.date_published)}
                         layoutType={index % 3 === 0 ? 'main' : 'normal'}
                     />
                 ))}
