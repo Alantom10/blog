@@ -16,3 +16,9 @@ fastapienv/
 # OS files
 .DS_Store
 Thumbs.db
+
+# dependencies
+/node_modules
+
+.aws-sam/
+.serverless/

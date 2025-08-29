@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from app.routes import blogs
 from app.database import blogs_collection
 from fastapi.middleware.cors import CORSMiddleware
+from mangum import Mangum
 
 
 app = FastAPI()
@@ -19,3 +20,5 @@ app.add_middleware(
 blogs_collection.create_index("slug", unique=True)
 
 app.include_router(blogs.router)
+
+handler = Mangum(app)

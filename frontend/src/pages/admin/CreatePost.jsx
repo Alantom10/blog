@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import 'quill/dist/quill.snow.css';
 import ReactQuill from 'react-quill';
-import jsonData from '../data/mock.json';
-import PreviewPost from '../components/PreviewPost';
+import jsonData from '../../data/mock.json';
+import PreviewPost from '../../components/PreviewPost';
 
 function CreatePost() {
     const [content, setContent] = useState('');

@@ -5,7 +5,8 @@ import { Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
 import About from './pages/About';
 import BlogPage from './pages/BlogPage';
-import CreatePost from './pages/CreatePost';
+import CreatePost from './pages/admin/CreatePost';
+import Login from './pages/admin/Login';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/blog/:slug" element={<BlogPage />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/create-post" element={<CreatePost />} />
         </Routes>
       </div>
