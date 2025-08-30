@@ -1,27 +1,36 @@
 import './App.css';
 import Header from './components/shared/Header';
 import Footer from './components/shared/Footer';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, useLocation } from 'react-router-dom';
 import Home from './pages/Home';
 import About from './pages/About';
 import BlogPage from './pages/BlogPage';
 import CreatePost from './pages/admin/CreatePost';
 import Login from './pages/admin/Login';
+import Dashboard from './pages/admin/Dashboard';
 
 function App() {
+  const location = useLocation();
+
+  // List of routes where header/footer should be hidden
+  const hideHeaderFooter = ["/login", "/dashboard", "/create-post"];
+
+  const shouldShowHeaderFooter = !hideHeaderFooter.includes(location.pathname);
+
   return (
     <>
-      <Header />
+      {shouldShowHeaderFooter && <Header />}
       <div>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/blog/:slug" element={<BlogPage />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/create-post" element={<CreatePost />} />
         </Routes>
       </div>
-      <Footer />
+      {shouldShowHeaderFooter && <Footer />}
     </>
   );
 }

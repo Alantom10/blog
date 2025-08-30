@@ -145,7 +145,7 @@ function CreatePost() {
                     }
                 `}
             </style>
-            <div className="max-w-[960px] mx-auto w-full pb-10 md:pb-20 pt-20 box-content">
+            <div className="max-w-[960px] mx-auto w-full pb-10 md:pb-20 box-content">
                 <h1 className="text-center text-3xl lg:text-5xl font-semibold py-20 md:pt-40">Create Post</h1>
 
                 
@@ -171,7 +171,7 @@ function CreatePost() {
                         <div className='border p-2 mb-5 w-full relative flex'>
                             <label 
                                 for="upload-photo"
-                                className='flex justify-center items-center border border-white bg-react-blue rounded-full w-32 h-9 inline-block'>
+                                className='flex justify-center items-center border border-white bg-react-blue rounded-full w-32 h-9'>
                                     Cover Image
                             </label>
                             <input
