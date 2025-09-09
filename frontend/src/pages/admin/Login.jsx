@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Logo from "../../assets/alan.png";
+import { BsPerson, BsLock, BsEye, BsEyeSlash, BsBoxArrowInRight } from "react-icons/bs";
 
 
 function Login() {
@@ -28,7 +29,7 @@ function Login() {
                                 </label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <i className="bi bi-person text-sm text-gray-400"></i>
+                                        <BsPerson className="text-lg text-gray-400" />
                                     </div>
                                     <input 
                                         id="username"
@@ -45,7 +46,7 @@ function Login() {
                                 </label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <i className="bi bi-lock text-sm text-gray-400"></i>
+                                        <BsLock className="text-lg text-gray-400" />
                                     </div>
                                     <input 
                                         id="password"
@@ -59,9 +60,9 @@ function Login() {
                                         onClick={() => setShowPassword(!showPassword)}
                                     >
                                         {showPassword ? (
-                                            <i class="bi bi-eye text-sm text-gray-400 hover:text-gray-300"></i>
+                                            <BsEye className="text-lg text-gray-400 hover:text-gray-300" />
                                         ) : (
-                                            <i class="bi bi-eye-slash text-sm text-gray-400 hover:text-gray-300"></i>
+                                            <BsEyeSlash className="text-lg text-gray-400 hover:text-gray-300" />
                                         )}
                                     </button>
                                 </div>
@@ -100,7 +101,7 @@ function Login() {
                                     </div>
                                 ) : (
                                     <div className="flex items-center">
-                                        <i class="bi bi-box-arrow-in-right text-lg mr-2"></i>
+                                        <BsBoxArrowInRight className="text-lg mr-2" />
                                         Sign in
                                     </div>
                                 )}
