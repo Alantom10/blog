@@ -13,7 +13,7 @@ function AdminHeader() {
 
             <nav className="flex justify-between items-center gap-4">
                 <div className="border border-white/[0.1] bg-react-blue rounded-full w-10 h-10 flex justify-center items-center shadow-md shadow-slate-950 text-white transition-colors duration-700 transform hover:bg-white hover:text-react-blue hover:border-transparent">
-                    <BsGear className="text-xl text-white" />
+                    <BsGear className="text-xl" />
                 </div>
 
                 <Link to="/" className="inline-flex items-center justify-center border border-white/[0.1] bg-react-blue rounded-full px-4 h-10 shadow-md shadow-slate-950 text-sm text-white transition-colors duration-700 transform hover:bg-white hover:text-react-blue hover:border-transparent">

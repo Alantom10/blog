@@ -71,18 +71,18 @@ function Dashboard() {
                     />
                 </div>
 
-                <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
-                    <div className="p-6 border-b border-gray-700/50">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm: justify-between">
-                            <h2 className="text-xl font-semibold text-white mb-4 sm:mb-0">Blog Posts</h2>
+                <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700/50">
+                    <div className="pt-12 px-12 pb-6 border-b border-gray-700/50">
+                        <div className="flex flex-col md:flex-row md:items-center md: justify-between">
+                            <h2 className="text-xl font-semibold text-white mb-4 self-center md:self-start">Blog Posts</h2>
 
-                            <div className="flex flex-col sm:flex-row gap-4">
+                            <div className="flex flex-col md:flex-row gap-4">
                                 <div className="relative">
                                     <BsSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                                     <input
                                         type="text"
                                         placeholder="Search posts..."
-                                        className="pl-10 pr-4 py-2 rounded-lg bg-gray-700/50 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                                        className="w-100 pl-10 pr-4 py-2 rounded-lg bg-gray-700/50 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
                                     />
                                 </div>
 
@@ -102,7 +102,23 @@ function Dashboard() {
                         </div>
                     </div>
 
-                    
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="bg-gray-700/50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Title</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Category</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Date</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Views</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </>
