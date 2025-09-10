@@ -16,11 +16,11 @@ class Blog(BaseModel):
     date_published: datetime
     content: str
     tags: List[str] = []
+    is_published: bool = True
 
 
 class BlogResponse(Blog):
     id: str
-    is_published: bool = True
 
     model_config = ConfigDict(
         from_attributes=True

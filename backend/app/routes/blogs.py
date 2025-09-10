@@ -40,7 +40,7 @@ def serialize_for_mongo(model: BaseModel) -> Dict[str, Any]:
 def get_blogs(skip: int = 0, limit: int = 10):
     blogs = list(blogs_collection.find().skip(skip).limit(limit))
     for blog in blogs:
-        blog["id"]= str(blog["_id"])
+        blog["id"] = str(blog["_id"])
         del blog["_id"]
     return blogs
 
