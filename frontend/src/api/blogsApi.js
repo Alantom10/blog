@@ -28,6 +28,14 @@ export const getBlogBySlug = async (slug) => {
     }
 }
 
+export const deleteBlog = async (slug) => {
+    try {
+        const response = await axios.delete(`${API_URL}/${slug}`);
+        return response.data;
+    } catch (error) {
+        handleError(error, "Error deleting blog");
+    }
+}
+
 // export const createBlog = (blog) => axios.post(API_URL, blog);
 // export const updateBlog = (slug, blog) => axios.put(`${API_URL}/${slug}`, blog);
-// export const deleteBlog = (slug) => axios.delete(`${API_URL}/${slug}`);

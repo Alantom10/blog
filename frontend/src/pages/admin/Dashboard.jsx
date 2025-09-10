@@ -11,7 +11,7 @@ import {
   BsTrash,
 } from "react-icons/bs";
 import { useState, useEffect } from "react";
-import { getBlogs } from "../../api/blogsApi";
+import { getBlogs, deleteBlog } from "../../api/blogsApi";
 import Spinner from "../../components/Spinner";
 
 function Dashboard() {
@@ -63,9 +63,14 @@ function Dashboard() {
     return matchesSearch && matchesStatus;
   });
 
-  const handleDeleteBlog = (blogId) => {
+  const handleDeleteBlog = async (blogSlug) => {
     if (window.confirm("Are you sure you want to delete this blog?")) {
-      setBlogs(blogs.filter((p) => p.id !== blogId));
+      try {
+        await deleteBlog(blogSlug);
+        setBlogs(prevBlogs => prevBlogs.filter((blog) => blog.slug !== blogSlug));
+      } catch (error) {
+        alert('Failed to delete blog. Please try again.');
+      }
     }
     setShowDropdown(null);
   };
@@ -262,7 +267,7 @@ function Dashboard() {
                                   View Blog
                                 </button>
                                 <button
-                                  onClick={() => handleDeleteBlog(blog.id)}
+                                  onClick={() => handleDeleteBlog(blog.slug)}
                                   className="text-red-400 flex items-center px-4 py-2 text-sm hover:bg-gray-700 hover:text-red-300 w-full"
                                 >
                                   <BsTrash className="w-4 h-4 mr-2" />
