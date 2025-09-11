@@ -146,7 +146,7 @@ function CreatePost() {
                 `}
             </style>
             <div className="max-w-[960px] mx-auto w-full pb-10 md:pb-20 box-content">
-                <h1 className="text-center text-3xl lg:text-5xl font-semibold py-20 md:pt-40">Create Post</h1>
+                <h1 className="text-center text-3xl lg:text-5xl font-semibold pt-10 pb-20">Create Post</h1>
 
                 
 
