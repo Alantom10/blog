@@ -110,7 +110,7 @@ function Dashboard() {
         setAuthorName(blog.author.name);
         setAuthorImage(blog.author.image);
         setDatePublished(formatDatePreview(blog.date_published));
-        setCoverImage(blog.cover_image);
+        if (blog.cover_image) {setCoverImage(blog.cover_image);}
         setContent(blog.content);
     }
 
@@ -205,7 +205,7 @@ function Dashboard() {
                                         <option value="false">Draft</option>
                                     </select>
 
-                                    <button 
+                                    <button
                                         onClick={() => navigate('/create-post')}
                                         className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all duration-200">
                                         <BsPlus className="w-4 h-4 mr-2" />
@@ -296,7 +296,12 @@ function Dashboard() {
                                                     {showDropdown === blog.id && (
                                                         <div className="absolute w-48 right-0 mt-2 bg-gray-800 rounded-lg border border-gray-700 z-10">
                                                             <div>
-                                                                <button className="text-gray-300 flex items-center px-4 py-2 text-sm hover:bg-gray-700 hover:text-white w-full">
+                                                                <button
+                                                                    onClick={() => {
+                                                                        storePreviewValues(blog);
+                                                                        togglePreview();
+                                                                    }}
+                                                                    className="text-gray-300 flex items-center px-4 py-2 text-sm hover:bg-gray-700 hover:text-white w-full">
                                                                     <AiOutlineEdit className="w-4 h-4 mr-2" />
                                                                     Edit Blog
                                                                 </button>
