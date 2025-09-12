@@ -32,6 +32,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/create-post" element={<CreatePost />} />
+          <Route path="/edit-post/:slug" element={<CreatePost />} />
         </Routes>
       </div>
       {shouldShowHeaderFooter && <Footer />}

@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
 import 'quill/dist/quill.snow.css';
 import ReactQuill from 'react-quill';
-import jsonData from '../../data/mock.json';
-import PreviewPost from '../../components/PreviewPost';
+import { getBlog, createBlog, updateBlog } from '../../api/blogsApi';import PreviewPost from '../../components/PreviewPost';
+import { getBlogBySlug } from '../../api/blogsApi';
+import Spinner from "../../components/Spinner";
+
 
 function CreatePost() {
     const [content, setContent] = useState('');
@@ -11,10 +14,47 @@ function CreatePost() {
     const [coverImage, setCoverImage] = useState('');
     const [coverImageName, setCoverImageName] = useState('');
     const [showPreview, setShowPreview] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [originalBlog, setOriginalBlog] = useState(null);
+
+    const { slug: blogSlug } = useParams(); // Get slug from URL params
+    const location = useLocation();
 
     useEffect(() => {
         window.scrollTo(0, 0);
-    }, []);
+        
+        if (blogSlug) {
+            setIsEditMode(true);
+            fetchBlogData(blogSlug);
+        }
+    }, [blogSlug]);
+
+    const fetchBlogData = async (slug) => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const blog = await getBlogBySlug(slug);
+            if (blog) {
+                setOriginalBlog(blog);
+                setTitle(blog.title);
+                setSlug(blog.slug);
+                setContent(blog.content);
+                setCoverImage(blog.cover_image);
+
+                if (blog.cover_image) {
+                    setCoverImageName('Existing image')
+                }
+            }
+        } catch (err) {
+            setError(err.message);
+            console.error('Error fetching blog:', err);
+        } finally {
+            setLoading(false);
+        }
+    }
 
     const handleProcedureContentChange = (content) => {
         setContent(content);
@@ -23,12 +63,14 @@ function CreatePost() {
     const handleTitleChange = (e) => {
         const newTitle = e.target.value;
         setTitle(newTitle);
-        var slug = require('slug');
-        setSlug(slug(newTitle));
+        
+        if (!isEditMode) {
+            var slugify = require('slug');
+            setSlug(slugify(newTitle));
+        }
     };
 
     const handleCoverImageChange = (e) => {
-
         const file = e.target.files[0];
     
         if (file) {
@@ -55,9 +97,10 @@ function CreatePost() {
 
     const savePost = async (e) => {
         e.preventDefault();
-        try {
+        setLoading(true);
 
-            const post = {
+        try {
+            const postData = {
                 title: title,
                 slug: slug,
                 author: {
@@ -65,31 +108,48 @@ function CreatePost() {
                     profileImageUrl: "alan-profile.JPG",
                 },
                 coverImage: coverImage || '',
-                datePublished: new Date().toLocaleDateString(),
+                // datePublished: new Date().toLocaleDateString(),
                 content: content
             };
     
-            // Add new post to existing posts
-            let updatedPosts = [...jsonData, post];
-    
-            // Trigger a download of the updated JSON file
-            downloadJSON(updatedPosts, "mock.json");  
+            if (isEditMode) {
+                // Update existing post using original slug
+                await updateBlog(originalBlog.slug, postData);
+                alert('Blog updated successfully!');
+            } else {
+                // Create new post - MongoDB will auto-generate ID
+                await createBlog(postData);
+                alert('Blog created successfully!');
+                
+                // Reset form after successful creation
+                setTitle('');
+                setSlug('');
+                setContent('');
+                setCoverImage('');
+                setCoverImageName('');
+            }  
 
         } catch (error) {
-            console.error("Error parsing content:", error);
+            console.error("Error saving post:", error);
+            alert(`Failed to ${isEditMode ? 'update' : 'create'} blog. Please try again.`);
+        } finally {
+            setLoading(false);
         }
     }
 
-    const downloadJSON = (data, filename) => {
-        const fileData = JSON.stringify(data, null, 4);
-        const blob = new Blob([fileData], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    // Loading state while fetching blog data
+    if (loading && isEditMode && !originalBlog) {
+        return <Spinner />;
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <div className="max-w-[960px] mx-auto w-full pb-10 md:pb-20 box-content">
+                <h1 className="text-center text-3xl lg:text-5xl font-semibold pt-10 pb-20">Error</h1>
+                <p className="text-center text-red-500">Error loading blog: {error}</p>
+            </div>
+        );
     }
 
     var modules = {

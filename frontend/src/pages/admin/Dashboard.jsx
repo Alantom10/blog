@@ -298,8 +298,8 @@ function Dashboard() {
                                                             <div>
                                                                 <button
                                                                     onClick={() => {
-                                                                        storePreviewValues(blog);
-                                                                        togglePreview();
+                                                                        navigate(`/edit-post/${blog.slug}`);
+                                                                        setShowDropdown(null);
                                                                     }}
                                                                     className="text-gray-300 flex items-center px-4 py-2 text-sm hover:bg-gray-700 hover:text-white w-full">
                                                                     <AiOutlineEdit className="w-4 h-4 mr-2" />

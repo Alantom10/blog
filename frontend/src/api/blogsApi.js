@@ -28,6 +28,24 @@ export const getBlogBySlug = async (slug) => {
     }
 }
 
+export const createBlog = async (blog) => {
+    try {
+        const response = await axios.post(API_URL, blog);
+        return response.data;
+    } catch (error) {
+        handleError(error, "Error creating blog");
+    }
+}
+
+export const updateBlog = async (slug, blog) => {
+    try {
+        const response = await axios.put(`${API_URL}/${slug}`, blog);
+        return response.data;
+    } catch (error) {
+        handleError(error, "Error updating blog");
+    }
+}
+
 export const deleteBlog = async (slug) => {
     try {
         const response = await axios.delete(`${API_URL}/${slug}`);
@@ -36,6 +54,3 @@ export const deleteBlog = async (slug) => {
         handleError(error, "Error deleting blog");
     }
 }
-
-// export const createBlog = (blog) => axios.post(API_URL, blog);
-// export const updateBlog = (slug, blog) => axios.put(`${API_URL}/${slug}`, blog);
