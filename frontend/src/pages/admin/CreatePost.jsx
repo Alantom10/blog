@@ -2,9 +2,15 @@ import { useEffect, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import 'quill/dist/quill.snow.css';
 import ReactQuill from 'react-quill';
-import { getBlog, createBlog, updateBlog } from '../../api/blogsApi';import PreviewPost from '../../components/PreviewPost';
+import { getBlog, createBlog, updateBlog } from '../../api/blogsApi'; import PreviewPost from '../../components/PreviewPost';
 import { getBlogBySlug } from '../../api/blogsApi';
 import Spinner from "../../components/Spinner";
+import { useNavigate } from 'react-router-dom';
+import {
+    BsEye,
+    BsTrash,
+} from "react-icons/bs";
+import { RiDraftLine } from "react-icons/ri";
 
 
 function CreatePost() {
@@ -21,10 +27,12 @@ function CreatePost() {
 
     const { slug: blogSlug } = useParams(); // Get slug from URL params
     const location = useLocation();
+    const navigate = useNavigate();
+
 
     useEffect(() => {
         window.scrollTo(0, 0);
-        
+
         if (blogSlug) {
             setIsEditMode(true);
             fetchBlogData(blogSlug);
@@ -63,7 +71,7 @@ function CreatePost() {
     const handleTitleChange = (e) => {
         const newTitle = e.target.value;
         setTitle(newTitle);
-        
+
         if (!isEditMode) {
             var slugify = require('slug');
             setSlug(slugify(newTitle));
@@ -72,7 +80,7 @@ function CreatePost() {
 
     const handleCoverImageChange = (e) => {
         const file = e.target.files[0];
-    
+
         if (file) {
             setCoverImageName(file.name); // Update file name
             const reader = new FileReader();
@@ -111,7 +119,7 @@ function CreatePost() {
                 // datePublished: new Date().toLocaleDateString(),
                 content: content
             };
-    
+
             if (isEditMode) {
                 // Update existing post using original slug
                 await updateBlog(originalBlog.slug, postData);
@@ -120,14 +128,14 @@ function CreatePost() {
                 // Create new post - MongoDB will auto-generate ID
                 await createBlog(postData);
                 alert('Blog created successfully!');
-                
+
                 // Reset form after successful creation
                 setTitle('');
                 setSlug('');
                 setContent('');
                 setCoverImage('');
                 setCoverImageName('');
-            }  
+            }
 
         } catch (error) {
             console.error("Error saving post:", error);
@@ -172,7 +180,7 @@ function CreatePost() {
     };
 
     var formats = [
-        "header", 
+        "header",
         // "font", "height",
         "bold", "italic",
         "underline", "strike", "blockquote",
@@ -180,7 +188,7 @@ function CreatePost() {
         "link", "image", "video", "align", "size", "code-block",
     ];
 
-    return(
+    return (
         <>
             <style>
                 {`
@@ -208,7 +216,7 @@ function CreatePost() {
             <div className="max-w-[960px] mx-auto w-full pb-10 md:pb-20 box-content">
                 <h1 className="text-center text-3xl lg:text-5xl font-semibold pt-10 pb-20">Create Post</h1>
 
-                
+
 
                 <div className="w-full mx-3">
                     <form onSubmit={savePost}>
@@ -229,19 +237,19 @@ function CreatePost() {
                         />
 
                         <div className='border p-2 mb-5 w-full relative flex'>
-                            <label 
+                            <label
                                 for="upload-photo"
                                 className='flex justify-center items-center border border-white bg-react-blue rounded-full w-32 h-9'>
-                                    Cover Image
+                                Cover Image
                             </label>
                             <input
-                                    type="file"
-                                    name="photo"
-                                    id="upload-photo"
-                                    accept="image/*"
-                                    className='bg-react-blue opacity-0 absolute -z-10 left-10 top-1/2 transform -translate-y-1/2'
-                                    onChange={handleCoverImageChange}
-                                    placeholder="Upload Cover Image"
+                                type="file"
+                                name="photo"
+                                id="upload-photo"
+                                accept="image/*"
+                                className='bg-react-blue opacity-0 absolute -z-10 left-10 top-1/2 transform -translate-y-1/2'
+                                onChange={handleCoverImageChange}
+                                placeholder="Upload Cover Image"
                             />
                             <span className='self-center ml-3'>{coverImageName ? `${coverImageName}` : 'No file selected'}</span>
                         </div>
@@ -258,19 +266,59 @@ function CreatePost() {
                         </ReactQuill>
 
                         <div className='h-20 box-content flex flex-col justify-between items-center lg:flex-row lg:justify-between pt-32 md:pt-20'>
-                            <button 
-                                type="button"
-                                onClick={togglePreview}
-                                className='flex justify-center items-center border border-white/[0.1] bg-react-blue rounded-full w-28 h-9 shadow-md shadow-slate-950 text-sm text-center transition-colors duration-700 transform hover:bg-white hover:text-react-blue hover:border-transparent'>
-                                    Preview
-                            </button>
-                            <button 
-                                type="submit"
-                                className='flex justify-center items-center border border-white/[0.1] bg-react-blue rounded-full w-28 h-9 shadow-md shadow-slate-950 text-sm text-center transition-colors duration-700 transform hover:bg-white hover:text-react-blue hover:border-transparent'>
-                                    Publish
-                            </button>
-                        </div>
+                            <span className='flex relative'>
+                                <div className='group relative mr-5'>
+                                    <button
+                                        type="button"
+                                        onClick={() => navigate('/dashboard')}
+                                        className='border border-white/[0.1] bg-red-500/50 rounded-full w-20 h-10 flex justify-center items-center shadow-md shadow-slate-950 text-white transition-colors duration-700 transform hover:bg-white hover:text-react-blue hover:border-transparent'>
+                                        <BsTrash className="text-md" />
+                                    </button>
 
+                                    {/* Tooltip positioned relative to the button */}
+                                    <div className="absolute left-1/2 top-[calc(100%+8px)] transform -translate-x-1/2 px-3 py-2 bg-white text-react-blue text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 whitespace-nowrap z-50
+                            before:content-[''] before:absolute before:top-[-4px] before:left-1/2 before:transform before:-translate-x-1/2 before:border-4 before:border-transparent before:border-b-white">
+                                        Discard
+                                    </div>
+                                </div>
+
+                                <div className='group relative mr-5'>
+                                    <button
+                                        type="button"
+                                        onClick={togglePreview}
+                                        className='border border-white/[0.1] bg-react-blue rounded-full w-20 h-10 flex justify-center items-center shadow-md shadow-slate-950 text-white transition-colors duration-700 transform hover:bg-white hover:text-react-blue hover:border-transparent'>
+                                        <BsEye className="text-md" />
+                                    </button>
+
+                                    {/* Preview tooltip */}
+                                    <div className="absolute left-1/2 top-[calc(100%+8px)] transform -translate-x-1/2 px-3 py-2 bg-white text-react-blue text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 whitespace-nowrap z-50
+                            before:content-[''] before:absolute before:top-[-4px] before:left-1/2 before:transform before:-translate-x-1/2 before:border-4 before:border-transparent before:border-b-white">
+                                        Preview
+                                    </div>
+                                </div>
+
+                                <div className='group relative'>
+                                    <button
+                                        className='border border-white/[0.1] bg-yellow-500/50 rounded-full w-20 h-10 flex justify-center items-center shadow-md shadow-slate-950 text-white transition-colors duration-700 transform hover:bg-white hover:text-react-blue hover:border-transparent'>
+                                        <RiDraftLine className="text-md" />
+                                    </button>
+
+                                    {/* Draft tooltip */}
+                                    <div className="absolute left-1/2 top-[calc(100%+8px)] transform -translate-x-1/2 px-3 py-2 bg-white text-react-blue text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 whitespace-nowrap z-50
+                            before:content-[''] before:absolute before:top-[-4px] before:left-1/2 before:transform before:-translate-x-1/2 before:border-4 before:border-transparent before:border-b-white">
+                                        Save Draft
+                                    </div>
+                                </div>
+                            </span>
+
+                            <span className='flex'>
+                                <button
+                                    type="submit"
+                                    className='flex justify-center items-center border border-white/[0.1] bg-react-blue rounded-full w-28 h-10 shadow-md shadow-slate-950 text-sm text-center transition-colors duration-700 transform hover:bg-white hover:text-react-blue hover:border-transparent'>
+                                    Publish
+                                </button>
+                            </span>
+                        </div>
                     </form>
                 </div>
 
@@ -279,13 +327,13 @@ function CreatePost() {
                 )}
 
                 {showPreview && (
-                    <PreviewPost 
-                        title={title} 
-                        author = {{name: "Alan Thomas", profileImageUrl: "alan-profile.JPG"}}
+                    <PreviewPost
+                        title={title}
+                        author={{ name: "Alan Thomas", profileImageUrl: "alan-profile.JPG" }}
                         coverImage={coverImage}
-                        datePublished={new Date().toLocaleDateString()} 
-                        content={content} 
-                        onClose={togglePreview} 
+                        datePublished={new Date().toLocaleDateString()}
+                        content={content}
+                        onClose={togglePreview}
                     />
                 )}
 
