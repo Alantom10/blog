@@ -1,3 +1,4 @@
+from datetime import datetime
 from fastapi import APIRouter, HTTPException
 from typing import Any, Dict, List
 from pymongo.errors import DuplicateKeyError
@@ -60,6 +61,8 @@ def get_blog(slug: str):
 @router.post("", response_model=BlogResponse, status_code=status.HTTP_201_CREATED)
 def create_blog(blog: Blog):
     blog_dict = serialize_for_mongo(blog)
+    if not blog_dict.get('date_published'):
+        blog_dict['date_published'] = datetime.now()
     try:
         result = blogs_collection.insert_one(blog_dict)
     except DuplicateKeyError:

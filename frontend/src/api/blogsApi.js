@@ -30,6 +30,7 @@ export const getBlogBySlug = async (slug) => {
 
 export const createBlog = async (blog) => {
     try {
+        console.log("Got here");
         const response = await axios.post(API_URL, blog);
         return response.data;
     } catch (error) {

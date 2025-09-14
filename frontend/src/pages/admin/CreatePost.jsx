@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import 'quill/dist/quill.snow.css';
 import ReactQuill from 'react-quill';
-import { getBlog, createBlog, updateBlog } from '../../api/blogsApi'; import PreviewPost from '../../components/PreviewPost';
-import { getBlogBySlug } from '../../api/blogsApi';
+import { getBlogBySlug, createBlog, updateBlog } from '../../api/blogsApi'; 
+import PreviewPost from '../../components/PreviewPost';
 import Spinner from "../../components/Spinner";
 import { useNavigate } from 'react-router-dom';
 import {
@@ -103,21 +103,75 @@ function CreatePost() {
         }
     }
 
-    const savePost = async (e) => {
+    const saveDraft = async (e) => {
         e.preventDefault();
         setLoading(true);
 
         try {
             const postData = {
-                title: title,
-                slug: slug,
+                title: title.trim(),
+                slug: slug.trim(),
                 author: {
                     name: "Alan Thomas",
-                    profileImageUrl: "alan-profile.JPG",
+                    image: "alan-profile.JPG",
                 },
-                coverImage: coverImage || '',
+                cover_image: coverImage || '',
                 // datePublished: new Date().toLocaleDateString(),
-                content: content
+                content: content,
+                tags: [],
+                is_published: false
+            };
+
+            if (isEditMode) {
+                // Update existing post using original slug
+                await updateBlog(originalBlog.slug, postData);
+                alert('Blog draft updated successfully!');
+            } else {
+                // Create new post - MongoDB will auto-generate ID
+                await createBlog(postData);
+                alert('Blog saved to draft successfully!');
+            }
+
+        } catch (error) {
+            console.error("Error saving post:", error);
+            alert(`Failed to add blog to draft. Please try again.`);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    const savePost = async (e) => {
+        e.preventDefault();
+
+        // Basic validation
+        if (!title.trim()) {
+            alert('Title is required');
+            return;
+        }
+        if (!content.trim()) {
+            alert('Content is required');
+            return;
+        }
+        if (!slug.trim()) {
+            alert('Slug is required');
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const postData = {
+                title: title.trim(),
+                slug: slug.trim(),
+                author: {
+                    name: "Alan Thomas",
+                    image: "alan-profile.JPG",
+                },
+                cover_image: coverImage || '',
+                // datePublished: new Date().toLocaleDateString(),
+                content: content,
+                tags: [],
+                is_published: true
             };
 
             if (isEditMode) {
@@ -125,6 +179,7 @@ function CreatePost() {
                 await updateBlog(originalBlog.slug, postData);
                 alert('Blog updated successfully!');
             } else {
+                console.log('Sending data:', JSON.stringify(postData, null, 2));
                 // Create new post - MongoDB will auto-generate ID
                 await createBlog(postData);
                 alert('Blog created successfully!');
@@ -275,9 +330,7 @@ function CreatePost() {
                                         <BsTrash className="text-md" />
                                     </button>
 
-                                    {/* Tooltip positioned relative to the button */}
-                                    <div className="absolute left-1/2 top-[calc(100%+8px)] transform -translate-x-1/2 px-3 py-2 bg-white text-react-blue text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 whitespace-nowrap z-50
-                            before:content-[''] before:absolute before:top-[-4px] before:left-1/2 before:transform before:-translate-x-1/2 before:border-4 before:border-transparent before:border-b-white">
+                                    <div className="absolute left-1/2 top-[calc(100%+8px)] transform -translate-x-1/2 px-3 py-2 bg-white text-react-blue text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 whitespace-nowrap z-50 before:content-[''] before:absolute before:top-[-4px] before:left-1/2 before:transform before:-translate-x-1/2 before:border-4 before:border-transparent before:border-b-white">
                                         Discard
                                     </div>
                                 </div>
@@ -290,22 +343,20 @@ function CreatePost() {
                                         <BsEye className="text-md" />
                                     </button>
 
-                                    {/* Preview tooltip */}
-                                    <div className="absolute left-1/2 top-[calc(100%+8px)] transform -translate-x-1/2 px-3 py-2 bg-white text-react-blue text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 whitespace-nowrap z-50
-                            before:content-[''] before:absolute before:top-[-4px] before:left-1/2 before:transform before:-translate-x-1/2 before:border-4 before:border-transparent before:border-b-white">
+                                    <div className="absolute left-1/2 top-[calc(100%+8px)] transform -translate-x-1/2 px-3 py-2 bg-white text-react-blue text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 whitespace-nowrap z-50 before:content-[''] before:absolute before:top-[-4px] before:left-1/2 before:transform before:-translate-x-1/2 before:border-4 before:border-transparent before:border-b-white">
                                         Preview
                                     </div>
                                 </div>
 
                                 <div className='group relative'>
                                     <button
+                                        type="button"
+                                        onClick={saveDraft}
                                         className='border border-white/[0.1] bg-yellow-500/50 rounded-full w-20 h-10 flex justify-center items-center shadow-md shadow-slate-950 text-white transition-colors duration-700 transform hover:bg-white hover:text-react-blue hover:border-transparent'>
                                         <RiDraftLine className="text-md" />
                                     </button>
 
-                                    {/* Draft tooltip */}
-                                    <div className="absolute left-1/2 top-[calc(100%+8px)] transform -translate-x-1/2 px-3 py-2 bg-white text-react-blue text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 whitespace-nowrap z-50
-                            before:content-[''] before:absolute before:top-[-4px] before:left-1/2 before:transform before:-translate-x-1/2 before:border-4 before:border-transparent before:border-b-white">
+                                    <div className="absolute left-1/2 top-[calc(100%+8px)] transform -translate-x-1/2 px-3 py-2 bg-white text-react-blue text-sm rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 whitespace-nowrap z-50 before:content-[''] before:absolute before:top-[-4px] before:left-1/2 before:transform before:-translate-x-1/2 before:border-4 before:border-transparent before:border-b-white">
                                         Save Draft
                                     </div>
                                 </div>

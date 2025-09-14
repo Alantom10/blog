@@ -5,15 +5,15 @@ from pydantic import BaseModel, ConfigDict, HttpUrl
 
 class Author(BaseModel):
     name: str
-    image: Optional[HttpUrl] = None
+    image: Optional[str] = None
 
 
 class Blog(BaseModel):
     title: str
     slug: str
     author: Author
-    cover_image: Optional[HttpUrl] = None
-    date_published: datetime
+    cover_image: Optional[str] = None
+    date_published: Optional[datetime] = None
     content: str
     tags: List[str] = []
     is_published: bool = True
