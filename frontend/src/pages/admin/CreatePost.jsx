@@ -14,11 +14,13 @@ import { RiDraftLine } from "react-icons/ri";
 
 
 function CreatePost() {
-    const [content, setContent] = useState('');
     const [title, setTitle] = useState('');
     const [slug, setSlug] = useState("");
     const [coverImage, setCoverImage] = useState('');
     const [coverImageName, setCoverImageName] = useState('');
+    const [tags, setTags] = useState([]);
+    const [tagInput, setTagInput] = useState('');
+    const [content, setContent] = useState('');
     const [showPreview, setShowPreview] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -51,6 +53,7 @@ function CreatePost() {
                 setSlug(blog.slug);
                 setContent(blog.content);
                 setCoverImage(blog.cover_image);
+                setTags(blog.tags || []);
 
                 if (blog.cover_image) {
                     setCoverImageName('Existing image')
@@ -103,6 +106,16 @@ function CreatePost() {
         }
     }
 
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault()
+            if (tagInput.trim() !== '') {
+                setTags([...tags, tagInput.trim()]);
+                setTagInput('');
+            }
+        }
+    }
+
     const saveDraft = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -118,7 +131,7 @@ function CreatePost() {
                 cover_image: coverImage || '',
                 // datePublished: new Date().toLocaleDateString(),
                 content: content,
-                tags: [],
+                tags: tags,
                 is_published: false
             };
 
@@ -170,7 +183,7 @@ function CreatePost() {
                 cover_image: coverImage || '',
                 // datePublished: new Date().toLocaleDateString(),
                 content: content,
-                tags: [],
+                tags: tags,
                 is_published: true
             };
 
@@ -190,6 +203,8 @@ function CreatePost() {
                 setContent('');
                 setCoverImage('');
                 setCoverImageName('');
+                setTags([]);
+                setTagInput('');
             }
 
         } catch (error) {
@@ -309,6 +324,36 @@ function CreatePost() {
                             <span className='self-center ml-3'>{coverImageName ? `${coverImageName}` : 'No file selected'}</span>
                         </div>
 
+                        <div className='flex flex-wrap gap-2 mb-5 w-full'>
+                            {tags.map((tag, index) => (
+                                <span
+                                    key={index}
+                                    className='inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold text-blue-300 bg-blue-500/20'    
+                                >
+                                    {tag}
+                                    <button
+                                        type='button'
+                                        onClick={() => { 
+                                            const newTags = tags.filter((_, i) => i !== index);
+                                            setTags(newTags);
+                                         }}
+                                        className='ml-2 text-blue-300 hover:text-red-400'    
+                                    >
+                                        ×
+                                    </button>
+                                </span>
+                            ))}
+                        </div>
+
+                        <input
+                            type="text"
+                            className='bg-react-blue border p-2 mb-5 w-full'
+                            onKeyDown={handleKeyDown}
+                            onChange={(e) => setTagInput(e.target.value)}
+                            value={tagInput}
+                            placeholder="Tags"
+                        />
+                        
                         <ReactQuill
                             className='h-72'
                             theme="snow"
