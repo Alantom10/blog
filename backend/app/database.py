@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from pymongo import MongoClient
+from motor.motor_asyncio import AsyncIOMotorClient
 
 # Load .env file
 load_dotenv()
@@ -8,7 +8,7 @@ load_dotenv()
 MONGO_URI = os.getenv("MONGO_URI")
 MONGO_DB_NAME = os.getenv("MONGO_DB_NAME")
 
-client = MongoClient(MONGO_URI)
+client = AsyncIOMotorClient(MONGO_URI)
 db = client[MONGO_DB_NAME]          # database for blog posts
-blogs_collection = db["blogs"]      # collection for blog posts
-users_collection = db["users"]      # collection for user profiles
+blogs_collection = db.blogs     # collection for blog posts
+users_collection = db.users      # collection for user profiles

@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from app.routes import blogs, users
+from app.utils import auth
 from app.database import blogs_collection, users_collection
 from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
@@ -26,5 +27,6 @@ users_collection.create_index("username", unique=True)
 # --- ROUTERS ---
 app.include_router(blogs.router)
 app.include_router(users.router)
+app.include_router(auth.router)
 
 handler = Mangum(app)

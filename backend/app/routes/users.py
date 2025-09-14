@@ -8,7 +8,7 @@ from starlette import status
 from app.models.user import User, UserCreate, UserResponse, UserUpdate
 from app.utils.serialization import serialize_for_mongo
 from app.utils.auth import get_current_user, hash_password
-from app.database import db
+from app.database import users_collection
 
 
 router = APIRouter(
@@ -17,11 +17,12 @@ router = APIRouter(
 )
 
 
-users_collection = db.users
+if users_collection is None:
+    raise RuntimeError("users_collection is None - database connection failed")
 
 
 # CREATE USER
-@router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def create_user(user_create: UserCreate):
     # Check duplicates
     if await users_collection.find_one({"email": user_create.email}):
@@ -34,6 +35,9 @@ async def create_user(user_create: UserCreate):
 
     # Serialize for MongoDB
     user_dict = serialize_for_mongo(user_create)
+
+    # Remove password and add additional fields
+    user_dict.pop("password", None)  # Remove plain password
     user_dict.update({
         "hashed_password": hashed_pw,
         "created_at": datetime.now(),
@@ -43,9 +47,20 @@ async def create_user(user_create: UserCreate):
 
     # Insert
     result = await users_collection.insert_one(user_dict)
-    user_dict["id"] = str(result.inserted_id)
 
-    return UserResponse(**user_dict)
+    # Prepare response data (only fields that belong to UserResponse)
+    response_dict = {
+        "id": str(result.inserted_id),
+        "email": user_dict["email"],
+        "username": user_dict["username"],
+        "full_name": user_dict["full_name"],
+        "profile_image": user_dict.get("profile_image"),
+        "is_active": user_dict["is_active"],
+        "is_admin": user_dict["is_admin"],
+        "created_at": user_dict["created_at"]
+    }
+
+    return UserResponse(**response_dict)
 
 
 # READ ALL
@@ -54,7 +69,7 @@ async def get_users(current_user=Depends(get_current_user)):
     if not current_user.is_admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     
-    users = await db.users.find().to_list(100)
+    users = await users_collection.users.find().to_list(100)
     for user in users:
         user["id"] = str(user["_id"])
     return [UserResponse(**u) for u in users]
@@ -72,7 +87,7 @@ async def get_user(user_id: str, current_user=Depends(get_current_user)):
     if not current_user.is_admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     
-    user = await db.users.find_one({"_id": ObjectId(user_id)})
+    user = await users_collection.users.find_one({"_id": ObjectId(user_id)})
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     user["id"] = str(user["_id"])
@@ -89,11 +104,11 @@ async def update_user(user_id: str, update: UserUpdate, current_user=Depends(get
     if "password" in update_data:
         update_data["password_hash"] = hash_password(update_data.pop("password"))
 
-    result = await db.users.update_one({"_id": ObjectId(user_id)}, {"$set": update_data})
+    result = await users_collection.users.update_one({"_id": ObjectId(user_id)}, {"$set": update_data})
     if result.matched_count == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-    user = await db.users.find_one({"_id": ObjectId(user_id)})
+    user = await users_collection.users.find_one({"_id": ObjectId(user_id)})
     user["id"] = str(user["_id"])
     return UserResponse(**user)
 
@@ -104,7 +119,7 @@ async def delete_user(user_id: str, current_user=Depends(get_current_user)):
     if not current_user.is_admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
     
-    result = await db.users.deleted_one({"_id": ObjectId(user_id)})
+    result = await users_collection.users.delete_one({"_id": ObjectId(user_id)})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="User not found")
 
