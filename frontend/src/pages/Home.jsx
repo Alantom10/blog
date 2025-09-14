@@ -57,7 +57,7 @@ function Home() {
         <Spinner />
       ) : (
         <div className="max-w-[960px] mx-auto w-full pb-10 md:pb-20 pt-20 px-10 box-content">
-          <div className="grid grid-cols-12 grid-rows-layout gap-[50px] py-20 md:pt-40">
+          <div className="grid grid-cols-12 auto-rows-[100px] gap-[50px] py-20 md:pt-40">
             {blogs.map((blog, index) => (
               <Card
                 key={blog.slug}

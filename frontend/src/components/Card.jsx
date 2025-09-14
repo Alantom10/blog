@@ -5,14 +5,14 @@ function Card({ slug, title, intro, coverImage, authorName, authorProfileImage, 
         <>
             { layoutType === 'main' ? (
                 <Link to={`/blog/${slug}`} className="col-span-12 row-span-3">
-                    <div className="flex rounded-md shadow-custom transition-shadow duration-700 transform hover:shadow-md hover:shadow-slate-950">
-                        <div className="p-10 flex flex-col">
-                            <h2 className="text-3xl lg:text-5xl font-semibold pb-8"> {title} </h2>
-                            <p className="pt-5 pb-10"> {intro} </p>
+                    <div className="flex rounded-md shadow-custom transition-shadow duration-700 transform hover:shadow-md hover:shadow-slate-950 h-full min-h-[300px]">
+                        <div className="p-10 flex flex-col w-1/2">
+                            <h2 className="text-3xl lg:text-5xl font-semibold pb-8 line-clamp-3"> {title} </h2>
+                            <p className="pt-5 pb-10 line-clamp-4 flex-grow"> {intro} </p>
                             <div className="flex mt-auto">
-                                <img src={authorProfileImage} alt={`${authorName}'s profile`} className="rounded-full w-12 h-12" />
+                                <img src={authorProfileImage} alt={`${authorName}'s profile`} className="rounded-full w-12 h-12 flex-shrink-0" />
                                 <div className="pl-5 font-light">
-                                    <h4> {authorName} </h4>
+                                    <h4 className="line-clamp-1"> {authorName} </h4>
                                     <p className="text-slate-500"> {datePublished} </p>
                                 </div>
                             </div>
@@ -21,16 +21,16 @@ function Card({ slug, title, intro, coverImage, authorName, authorProfileImage, 
                     </div>
                 </Link>
             ) : (
-                <Link to={`/blog/${slug}`} className=" col-span-6 row-span-4">
-                    <div className="flex flex-col rounded-md shadow-custom transition-shadow duration-700 transform hover:shadow-md hover:shadow-slate-950">
-                        <img src={coverImage} alt={`${title} cover`} className="object-cover rounded-t-md" />
-                        <div className="p-7 flex flex-col">
-                            <h2 className="text-3xl lg:text-4xl font-semibold pb-3"> {title} </h2>
-                            <p className="pb-5"> {intro} </p>
+                <Link to={`/blog/${slug}`} className=" col-span-6 row-span-5">
+                    <div className="flex flex-col rounded-md shadow-custom transition-shadow duration-700 transform hover:shadow-md hover:shadow-slate-950 h-full min-h-[400px]">
+                        <img src={coverImage} alt={`${title} cover`} className="object-cover rounded-t-md h-1/2" />
+                        <div className="p-7 flex flex-col flex-grow">
+                            <h2 className="text-3xl lg:text-4xl font-semibold pb-3 line-clamp-2"> {title} </h2>
+                            <p className="pb-5 line-clamp-3 flex-grow"> {intro} </p>
                             <div className="flex">
-                                <img src={authorProfileImage} alt={`${authorName}'s profile`} className="rounded-full w-12 h-12" />
+                                <img src={authorProfileImage} alt={`${authorName}'s profile`} className="rounded-full w-12 h-12 flex-shrink-0" />
                                 <div className="pl-5 font-light">
-                                    <h4> {authorName} </h4>
+                                    <h4 className="line-clamp-1"> {authorName} </h4>
                                     <p className="text-slate-500"> {datePublished} </p>
                                 </div>
                             </div>
