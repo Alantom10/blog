@@ -11,3 +11,4 @@ MONGO_DB_NAME = os.getenv("MONGO_DB_NAME")
 client = MongoClient(MONGO_URI)
 db = client[MONGO_DB_NAME]          # database for blog posts
 blogs_collection = db["blogs"]      # collection for blog posts
+users_collection = db["users"]      # collection for user profiles

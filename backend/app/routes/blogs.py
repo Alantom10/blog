@@ -14,7 +14,6 @@ router = APIRouter(
 )
 
 
-
 def serialize_for_mongo(model: BaseModel) -> Dict[str, Any]:
     """
     Converts a Pydantic model into a dict that can be safely inserted into MongoDB.
