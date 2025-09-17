@@ -25,8 +25,7 @@ from app.database import users_collection
 # Initialize router with prefix and tags for API organization
 router = APIRouter(
     prefix="/users",
-    tags=["users"],
-    responses={404: {"description": "Not found"}},
+    tags=["users"]
 )
 
 # Ensure database connection is established
@@ -256,7 +255,7 @@ async def update_user(
         )
     
     # Prepare update data (only include non-None values)
-    update_data = {k: v for k, v in update.dict().items() if v is not None}
+    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
     
     # Hash password if it's being updated
     if "password" in update_data:

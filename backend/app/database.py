@@ -2,13 +2,23 @@ import os
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 
-# Load .env file
+# Load environment variables from .env file
 load_dotenv()
 
-MONGO_URI = os.getenv("MONGO_URI")
-MONGO_DB_NAME = os.getenv("MONGO_DB_NAME")
+# Database configuration from environment variables
+MONGO_URI = os.getenv("MONGO_URI")        # MongoDB connection string (e.g., mongodb://localhost:27017)
+MONGO_DB_NAME = os.getenv("MONGO_DB_NAME") # Database name (e.g., "blog_app")
 
+# Create async MongoDB client connection
+# Motor is the async driver for MongoDB that works with FastAPI
 client = AsyncIOMotorClient(MONGO_URI)
-db = client[MONGO_DB_NAME]          # database for blog posts
-blogs_collection = db.blogs     # collection for blog posts
-users_collection = db.users      # collection for user profiles
+
+# Database instance - contains all collections for the blog application
+db = client[MONGO_DB_NAME]
+
+# Collection references for different data types
+blogs_collection = db.blogs     # Stores blog posts with title, content, author, etc.
+users_collection = db.users     # Stores user profiles for authentication and author info
+
+# Note: Collections are created automatically when first document is inserted
+# Motor provides async/await support for non-blocking database operations
