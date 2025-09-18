@@ -34,7 +34,7 @@ if users_collection is None:
 
 
 @router.post("", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def create_user(user_create: UserCreate):
+def create_user(user_create: UserCreate):
     """
     Create a new user account.
     
@@ -54,7 +54,7 @@ async def create_user(user_create: UserCreate):
         HTTPException 400: Email already registered or username already taken
     """
     # Check for duplicate email
-    existing_email = await users_collection.find_one({"email": user_create.email})
+    existing_email = users_collection.find_one({"email": user_create.email})
     if existing_email:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, 
@@ -62,7 +62,7 @@ async def create_user(user_create: UserCreate):
         )
     
     # Check for duplicate username
-    existing_username = await users_collection.find_one({"username": user_create.username})
+    existing_username = users_collection.find_one({"username": user_create.username})
     if existing_username:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, 
@@ -85,7 +85,7 @@ async def create_user(user_create: UserCreate):
     })
 
     # Insert user into database
-    result = await users_collection.insert_one(user_dict)
+    result = users_collection.insert_one(user_dict)
 
     # Prepare response data (exclude sensitive information)
     response_dict = {
@@ -103,7 +103,7 @@ async def create_user(user_create: UserCreate):
 
 
 @router.get("", response_model=List[UserResponse], status_code=status.HTTP_200_OK)
-async def get_users(current_user: UserResponse = Depends(get_current_user)):
+def get_users(current_user: UserResponse = Depends(get_current_user)):
     """
     Get all users in the system.
     
@@ -128,7 +128,7 @@ async def get_users(current_user: UserResponse = Depends(get_current_user)):
         )
     
     # Retrieve all users from database
-    users = await users_collection.find().to_list(100)  # Limit to prevent memory issues
+    users = list(users_collection.find().limit(100))  # Limit to prevent memory issues
     
     # Convert MongoDB _id to string id for each user
     for user in users:
@@ -140,7 +140,7 @@ async def get_users(current_user: UserResponse = Depends(get_current_user)):
 
 
 @router.get("/me", response_model=UserResponse, status_code=status.HTTP_200_OK)
-async def get_my_profile(current_user: UserResponse = Depends(get_current_user)):
+def get_my_profile(current_user: UserResponse = Depends(get_current_user)):
     """
     Get current user's profile information.
     
@@ -160,7 +160,7 @@ async def get_my_profile(current_user: UserResponse = Depends(get_current_user))
 
 
 @router.get("/{user_id}", response_model=UserResponse, status_code=status.HTTP_200_OK)
-async def get_user(user_id: str, current_user: UserResponse = Depends(get_current_user)):
+def get_user(user_id: str, current_user: UserResponse = Depends(get_current_user)):
     """
     Get a specific user by their ID.
     
@@ -196,7 +196,7 @@ async def get_user(user_id: str, current_user: UserResponse = Depends(get_curren
         )
     
     # Find user in database
-    user = await users_collection.find_one({"_id": object_id})
+    user = users_collection.find_one({"_id": object_id})
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, 
@@ -211,7 +211,7 @@ async def get_user(user_id: str, current_user: UserResponse = Depends(get_curren
 
 
 @router.put("/{user_id}", response_model=UserResponse, status_code=status.HTTP_200_OK)
-async def update_user(
+def update_user(
     user_id: str, 
     update: UserUpdate, 
     current_user: UserResponse = Depends(get_current_user)
@@ -265,7 +265,7 @@ async def update_user(
     update_data["updated_at"] = datetime.now()
 
     # Update user in database
-    result = await users_collection.update_one(
+    result = users_collection.update_one(
         {"_id": object_id}, 
         {"$set": update_data}
     )
@@ -277,7 +277,7 @@ async def update_user(
         )
 
     # Retrieve and return updated user
-    updated_user = await users_collection.find_one({"_id": object_id})
+    updated_user = users_collection.find_one({"_id": object_id})
     updated_user["id"] = str(updated_user["_id"])
     del updated_user["_id"]
     
@@ -285,7 +285,7 @@ async def update_user(
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_user(user_id: str, current_user: UserResponse = Depends(get_current_user)):
+def delete_user(user_id: str, current_user: UserResponse = Depends(get_current_user)):
     """
     Delete a user account permanently.
     
@@ -321,7 +321,7 @@ async def delete_user(user_id: str, current_user: UserResponse = Depends(get_cur
         )
     
     # Perform deletion
-    result = await users_collection.delete_one({"_id": object_id})
+    result = users_collection.delete_one({"_id": object_id})
     
     if result.deleted_count == 0:
         raise HTTPException(

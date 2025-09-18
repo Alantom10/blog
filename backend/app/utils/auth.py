@@ -72,7 +72,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserResponse:
+def get_current_user(token: str = Depends(oauth2_scheme)) -> UserResponse:
     """
     Dependency to get current authenticated user from JWT token
     Used to protect endpoints that require authentication
@@ -102,7 +102,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserResponse:
         raise credentials_exception
     
     # Find user in database by ID
-    user = await db.users.find_one({"_id": ObjectId(user_id)})
+    user = db.users.find_one({"_id": ObjectId(user_id)})
     if user is None:
         raise credentials_exception
     
@@ -122,7 +122,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserResponse:
 
 
 @router.post("/login", response_model=Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     """
     OAuth2 compatible login endpoint for Swagger UI
     
@@ -138,7 +138,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     Raises:
         HTTPException: 401 if credentials are invalid
     """
-    user = await authenticate_user(form_data.username, form_data.password)
+    user = authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -154,7 +154,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 
 
 @router.post("/login-json", response_model=Token)
-async def login_with_json(login_data: LoginRequest):
+def login_with_json(login_data: LoginRequest):
     """
     Alternative login endpoint that accepts JSON body
     
@@ -169,7 +169,7 @@ async def login_with_json(login_data: LoginRequest):
     Raises:
         HTTPException: 401 if credentials are invalid
     """
-    user = await authenticate_user(login_data.username, login_data.password)
+    user = authenticate_user(login_data.username, login_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -183,7 +183,7 @@ async def login_with_json(login_data: LoginRequest):
 
 
 @router.get("/me", response_model=UserResponse)
-async def get_my_profile(current_user: UserResponse = Depends(get_current_user)):
+def get_my_profile(current_user: UserResponse = Depends(get_current_user)):
     """
     Get current authenticated user's profile information
     
@@ -198,7 +198,7 @@ async def get_my_profile(current_user: UserResponse = Depends(get_current_user))
     return current_user
 
 
-async def authenticate_user(username: str, password: str):
+def authenticate_user(username: str, password: str):
     """
     Authenticate user credentials against database
     
@@ -211,7 +211,7 @@ async def authenticate_user(username: str, password: str):
                    False if authentication fails
     """
     # Find user by username
-    user = await db.users.find_one({"username": username})
+    user = db.users.find_one({"username": username})
     if not user:
         return False
     

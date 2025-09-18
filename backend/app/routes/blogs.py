@@ -18,7 +18,7 @@ router = APIRouter(
 
 # READ ALL BLOGS
 @router.get("", response_model=List[BlogResponse], status_code=status.HTTP_200_OK)
-async def get_blogs(skip: int = 0, limit: int = 10):
+def get_blogs(skip: int = 0, limit: int = 10):
     """
     Get all blogs with pagination support
     
@@ -30,7 +30,7 @@ async def get_blogs(skip: int = 0, limit: int = 10):
         List[BlogResponse]: List of all blog posts
     """
     # Fetch blogs from database with pagination
-    blogs = await blogs_collection.find().skip(skip).limit(limit).to_list(length=None)
+    blogs = list(blogs_collection.find().skip(skip).limit(limit))
     
     # Convert MongoDB _id to string id for each blog
     for blog in blogs:
@@ -42,7 +42,7 @@ async def get_blogs(skip: int = 0, limit: int = 10):
 
 # READ SINGLE BLOG (by slug)
 @router.get("/{slug}", response_model=BlogResponse, status_code=status.HTTP_200_OK)
-async def get_blog(slug: str):
+def get_blog(slug: str):
     """
     Get a single blog by its slug
     
@@ -56,7 +56,7 @@ async def get_blog(slug: str):
         HTTPException: 404 if blog with given slug is not found
     """
     # Find blog by slug in database
-    blog = await blogs_collection.find_one({"slug": slug})
+    blog = blogs_collection.find_one({"slug": slug})
     
     if blog:
         # Convert MongoDB _id to string id
@@ -70,7 +70,7 @@ async def get_blog(slug: str):
 
 # CREATE NEW BLOG
 @router.post("", response_model=BlogResponse, status_code=status.HTTP_201_CREATED)
-async def create_blog(blog: Blog):
+def create_blog(blog: Blog):
     """
     Create a new blog post
     
@@ -92,7 +92,7 @@ async def create_blog(blog: Blog):
     
     try:
         # Insert new blog into database
-        result = await blogs_collection.insert_one(blog_dict)
+        result = blogs_collection.insert_one(blog_dict)
     except DuplicateKeyError:
         # Slug already exists - return 400 error
         raise HTTPException(
@@ -101,13 +101,13 @@ async def create_blog(blog: Blog):
         )
     
     # Fetch the created blog to return with proper ID
-    created_blog = await blogs_collection.find_one({"_id": result.inserted_id})
+    created_blog = blogs_collection.find_one({"_id": result.inserted_id})
     return BlogResponse(**created_blog, id=str(created_blog["_id"]))
 
 
 # UPDATE EXISTING BLOG
 @router.put("/{slug}", response_model=BlogResponse, status_code=status.HTTP_200_OK)
-async def update_blog(slug: str, blog: Blog):
+def update_blog(slug: str, blog: Blog):
     """
     Update an existing blog by slug
     
@@ -125,20 +125,20 @@ async def update_blog(slug: str, blog: Blog):
     blog_dict = serialize_for_mongo(blog)
     
     # Update blog in database using slug as filter
-    result = await blogs_collection.update_one({"slug": slug}, {"$set": blog_dict})
+    result = blogs_collection.update_one({"slug": slug}, {"$set": blog_dict})
     
     if result.matched_count == 0:
         # No blog found with this slug - return 404 error
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Item not found')
     
     # Fetch and return updated blog
-    updated_blog = await blogs_collection.find_one({"slug": slug})
+    updated_blog = blogs_collection.find_one({"slug": slug})
     return BlogResponse(**updated_blog, id=str(updated_blog["_id"]))
     
 
 # DELETE BLOG
 @router.delete("/{slug}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_blog(slug: str):
+def delete_blog(slug: str):
     """
     Delete a blog by slug
     
@@ -152,7 +152,7 @@ async def delete_blog(slug: str):
         HTTPException: 404 if blog with given slug is not found
     """
     # Delete blog from database using slug as filter
-    result = await blogs_collection.delete_one({"slug": slug})
+    result = blogs_collection.delete_one({"slug": slug})
     
     if result.deleted_count == 0:
         # No blog found with this slug - return 404 error

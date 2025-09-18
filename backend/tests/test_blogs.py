@@ -4,6 +4,7 @@ from fastapi import status
 from app.main import app
 from app.database import blogs_collection
 
+
 # Create test client for FastAPI application
 client = TestClient(app)
 
@@ -36,8 +37,29 @@ def test_read_one():
     Tests retrieval of a specific blog by slug.
     This test assumes a blog with slug "first-blog" exists.
     """
-    response = client.get("/blogs/first-blog")
-    assert response.status_code == status.HTTP_200_OK
+    # First insert a test blog into the database
+    test_data = {
+        "title": "Test Blog",
+        "slug": "test-blog",
+        "author": {
+            "name": "Author",
+            "image": None
+        },
+        "date_published": datetime.now(timezone.utc).isoformat(),
+        "content": "Test content",
+        "tags": ["test", "blog"]  
+    }
+
+    blogs_collection.insert_one(test_data)
+
+    try:
+        response = client.get("/blogs/test-blog")
+        assert response.status_code == status.HTTP_200_OK
+    
+    finally:
+        # Clean up test data
+        cleanup_blog(test_data["slug"])
+
 
 
 def test_read_one_not_found():
@@ -204,6 +226,11 @@ def test_delete_blog():
 
     # Create test blog
     create_response = client.post("/blogs", json=blog_data)
+
+    if create_response.status_code != status.HTTP_201_CREATED:
+        print(f"Error: {create_response.status_code}")
+        print(f"Response: {create_response.json()}")
+
     assert create_response.status_code == status.HTTP_201_CREATED
 
     # Delete the blog

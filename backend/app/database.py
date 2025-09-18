@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import MongoClient
 
 # Load environment variables from .env file
 load_dotenv()
@@ -11,7 +11,7 @@ MONGO_DB_NAME = os.getenv("MONGO_DB_NAME") # Database name (e.g., "blog_app")
 
 # Create async MongoDB client connection
 # Motor is the async driver for MongoDB that works with FastAPI
-client = AsyncIOMotorClient(MONGO_URI)
+client = MongoClient(MONGO_URI)
 
 # Database instance - contains all collections for the blog application
 db = client[MONGO_DB_NAME]
