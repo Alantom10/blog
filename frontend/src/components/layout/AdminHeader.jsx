@@ -1,12 +1,13 @@
 import Logo from "../../assets/alan.png";
 import { Link } from "react-router-dom";
 import { BsGear, BsBoxArrowLeft } from 'react-icons/bs';
-import { logout } from "../../api/authApi";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 
 function AdminHeader() {
     const navigate = useNavigate();
+    const { logout } = useAuth();
 
 
     const handleLogout = async (e) => {

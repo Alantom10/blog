@@ -2,7 +2,7 @@ import { useState } from "react";
 import Logo from "../../assets/alan.png";
 import { BsPerson, BsLock, BsEye, BsEyeSlash, BsBoxArrowInRight } from "react-icons/bs";
 import { useNavigate } from "react-router-dom";
-import { login } from '../../api/authApi'; 
+import { useAuth } from "../../contexts/AuthContext";
 
 
 function Login() {
@@ -13,6 +13,7 @@ function Login() {
         username: '',
         password: ''
     });
+    const { login } = useAuth();
 
     const navigate = useNavigate();
 
@@ -45,11 +46,9 @@ function Login() {
                 return;
             }
 
-            const response = await login(credentials);
-        
-            localStorage.setItem('token', response.access_token);
-            
-           navigate('/dashboard');
+            await login(credentials);
+                    
+            navigate('/dashboard');
             
         } catch (error) {
             setErrors({ general: error.message || 'Login failed' });

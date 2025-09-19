@@ -9,6 +9,8 @@ import CreatePost from './pages/admin/CreatePost';
 import Login from './pages/admin/Login';
 import Dashboard from './pages/admin/Dashboard';
 import AdminHeader from './components/layout/AdminHeader';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+
 
 function App() {
   const location = useLocation();
@@ -30,9 +32,21 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/blog/:slug" element={<BlogPage />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/create-post" element={<CreatePost />} />
-          <Route path="/edit-post/:slug" element={<CreatePost />} />
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/create-post" element={
+            <ProtectedRoute>
+              <CreatePost />
+            </ProtectedRoute>
+          } />
+          <Route path="/edit-post/:slug" element={
+            <ProtectedRoute>
+              <CreatePost />
+            </ProtectedRoute>
+          } />
         </Routes>
       </div>
       {shouldShowHeaderFooter && <Footer />}
