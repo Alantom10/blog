@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException
 from typing import Any, Dict, List
 from pymongo.errors import DuplicateKeyError
@@ -88,7 +88,7 @@ def create_blog(blog: Blog):
     
     # Set publication date if not provided
     if not blog_dict.get('date_published'):
-        blog_dict['date_published'] = datetime.now()
+        blog_dict['date_published'] = datetime.now(timezone.utc)
     
     try:
         # Insert new blog into database

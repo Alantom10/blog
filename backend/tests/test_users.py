@@ -1,5 +1,5 @@
 import pytest
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi.testclient import TestClient
 from fastapi import status
 from app.main import app
@@ -44,7 +44,7 @@ def create_test_user_sync(email: str, username: str, is_admin: bool = False):
         "username": username,
         "full_name": "Test User",
         "hashed_password": hash_password("testpassword123"),
-        "created_at": datetime.now(),
+        "created_at": datetime.now(timezone.utc),
         "is_active": True,
         "is_admin": is_admin
     }

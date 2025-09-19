@@ -10,7 +10,7 @@ All endpoints except user creation require authentication.
 Admin-only endpoints require the user to have is_admin=True.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException
@@ -79,7 +79,7 @@ def create_user(user_create: UserCreate):
     user_dict.pop("password", None)  # Remove plain password for security
     user_dict.update({
         "hashed_password": hashed_pw,
-        "created_at": datetime.now(),
+        "created_at": datetime.now(timezone.utc),
         "is_active": True,      # New users are active by default
         "is_admin": False       # New users are not admin by default
     })
@@ -262,7 +262,7 @@ def update_user(
         update_data["hashed_password"] = hash_password(update_data.pop("password"))
     
     # Add update timestamp
-    update_data["updated_at"] = datetime.now()
+    update_data["updated_at"] = datetime.now(timezone.utc)
 
     # Update user in database
     result = users_collection.update_one(
