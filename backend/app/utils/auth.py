@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import os
@@ -8,7 +8,7 @@ from passlib.context import CryptContext
 from jose import jwt, JWTError
 from pydantic import BaseModel
 
-from app.database import db
+from app.database import users_collection
 from bson import ObjectId
 from app.models.user import UserResponse
 
@@ -91,18 +91,16 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> UserResponse:
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-
+    
     try:
-        # Decode JWT token to get user ID
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: str = payload.get("sub")  # "sub" is the subject (user ID)
+        user_id: str = payload.get("sub")
         if user_id is None:
             raise credentials_exception
     except JWTError:
         raise credentials_exception
     
-    # Find user in database by ID
-    user = db.users.find_one({"_id": ObjectId(user_id)})
+    user = users_collection.find_one({"_id": ObjectId(user_id)})
     if user is None:
         raise credentials_exception
     
@@ -211,7 +209,7 @@ def authenticate_user(username: str, password: str):
                    False if authentication fails
     """
     # Find user by username
-    user = db.users.find_one({"username": username})
+    user = users_collection.find_one({"username": username})
     if not user:
         return False
     
@@ -234,6 +232,6 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
         str: Encoded JWT token
     """
     to_encode = data.copy()
-    expire = datetime.now() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})  # Add expiration time to token
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
