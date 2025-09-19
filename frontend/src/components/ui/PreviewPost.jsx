@@ -1,6 +1,6 @@
 import parse from 'html-react-parser';
 
-import authorProfileImage from "../assets/alan-profile.JPG"
+import authorProfileImage from "../../assets/alan-profile.JPG"
 
 function PreviewPost({ title, author, coverImage, datePublished, content, onClose }) {
     return (

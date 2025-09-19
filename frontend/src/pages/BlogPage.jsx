@@ -5,7 +5,7 @@ import { getBlogBySlug } from "../api/blogsApi";
 import authorProfileImage from "../assets/alan-profile.JPG";
 import blogCoverImage from "../assets/wd.jpg";
 import { useParams } from 'react-router-dom';
-import Spinner from '../components/Spinner';
+import Spinner from '../components/ui/Spinner';
 
 
 function BlogPage() {

@@ -3,8 +3,8 @@ import { useParams, useLocation } from 'react-router-dom';
 import 'quill/dist/quill.snow.css';
 import ReactQuill from 'react-quill';
 import { getBlogBySlug, createBlog, updateBlog } from '../../api/blogsApi'; 
-import PreviewPost from '../../components/PreviewPost';
-import Spinner from "../../components/Spinner";
+import PreviewPost from '../../components/ui/PreviewPost';
+import Spinner from "../../components/ui/Spinner";
 import { useNavigate } from 'react-router-dom';
 import {
     BsEye,

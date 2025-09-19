@@ -1,9 +1,9 @@
-import Card from "../components/Card";
+import Card from "../components/ui/Card";
 import authorProfileImage from "../assets/alan-profile.JPG";
 import blogCoverImage from "../assets/wd.jpg";
 import { useEffect, useState } from "react";
 import { getBlogs } from "../api/blogsApi";
-import Spinner from "../components/Spinner";
+import Spinner from "../components/ui/Spinner";
 
 function Home() {
   const [loading, setLoading] = useState(true);

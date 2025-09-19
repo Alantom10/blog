@@ -11,8 +11,8 @@ import {
 } from "react-icons/bs";
 import { useState, useEffect } from "react";
 import { getBlogs, deleteBlog } from "../../api/blogsApi";
-import Spinner from "../../components/Spinner";
-import PreviewPost from '../../components/PreviewPost';
+import Spinner from "../../components/ui/Spinner";
+import PreviewPost from '../../components/ui/PreviewPost';
 import { useNavigate } from 'react-router-dom';
 
 

@@ -1,12 +1,62 @@
 import { useState } from "react";
 import Logo from "../../assets/alan.png";
 import { BsPerson, BsLock, BsEye, BsEyeSlash, BsBoxArrowInRight } from "react-icons/bs";
+import { useNavigate } from "react-router-dom";
+import { login } from '../../api/authApi'; 
 
 
 function Login() {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [errors, setErrors] = useState({});
+    const [credentials, setCredentials] = useState({
+        username: '',
+        password: ''
+    });
+
+    const navigate = useNavigate();
+
+    const handleChange = (e) => {
+        setCredentials({
+            ...credentials,
+            [e.target.name]: e.target.value
+        });
+        // Clear errors when user starts typing
+        if (errors.general) {
+            setErrors({});
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsLoading(true);
+        setErrors({});
+
+        try {
+            // Basic validation
+            if (!credentials.username.trim()) {
+                setErrors({ username: 'Username is required' });
+                setIsLoading(false);
+                return;
+            }
+            if (!credentials.password.trim()) {
+                setErrors({ password: 'Password is required' });
+                setIsLoading(false);
+                return;
+            }
+
+            const response = await login(credentials);
+        
+            localStorage.setItem('token', response.access_token);
+            
+           navigate('/dashboard');
+            
+        } catch (error) {
+            setErrors({ general: error.message || 'Login failed' });
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <>
@@ -21,7 +71,12 @@ function Login() {
                     </div>
 
                     <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-2xl p-8 border border-gray-700/50 min-w-96 mx-auto w-3/5">
-                        <div className="space-y-6">
+                        {errors.general && (
+                            <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                                {errors.general}
+                            </div>
+                        )}
+                        <form onSubmit={handleSubmit} className="space-y-6">
 
                             <div>
                                 <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
@@ -35,6 +90,8 @@ function Login() {
                                         id="username"
                                         name="username"
                                         type="text" 
+                                        value={credentials.username}
+                                        onChange={handleChange}
                                         placeholder="Enter your username"
                                         className="w-full block pl-10 pr-3 py-3 border rounded-lg bg-gray-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-colors border-gray-600 focus:ring-blue-500/20 focus:border-blue-400"/>
                                 </div>
@@ -52,6 +109,8 @@ function Login() {
                                         id="password"
                                         name="password"
                                         type={showPassword ? 'text' : 'password'} 
+                                        value={credentials.password}
+                                        onChange={handleChange}
                                         placeholder="Enter your password"
                                         className="w-full block pl-10 pr-3 py-3 border rounded-lg bg-gray-700/50 text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition-colors border-gray-600 focus:ring-blue-500/20 focus:border-blue-400"/>
                                     <button 
@@ -89,6 +148,7 @@ function Login() {
 
                             <button
                                 disabled={isLoading}
+                                type="submit"
                                 className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                                 >
                                 {isLoading ? (
@@ -107,7 +167,7 @@ function Login() {
                                 )}
                             </button>
 
-                        </div>
+                        </form>
 
                         <div className="mt-6 text-center">
                             <a href="/" className="text-sm text-gray-400 hover:text-gray-300 transition-colors">

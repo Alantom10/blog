@@ -1,6 +1,6 @@
 import './App.css';
-import Header from './components/shared/Header';
-import Footer from './components/shared/Footer';
+import Header from './components/layout/Header';
+import Footer from './components/layout/Footer';
 import { Route, Routes, useLocation, matchPath } from 'react-router-dom';
 import Home from './pages/Home';
 import About from './pages/About';
@@ -8,7 +8,7 @@ import BlogPage from './pages/BlogPage';
 import CreatePost from './pages/admin/CreatePost';
 import Login from './pages/admin/Login';
 import Dashboard from './pages/admin/Dashboard';
-import AdminHeader from './components/shared/AdminHeader';
+import AdminHeader from './components/layout/AdminHeader';
 
 function App() {
   const location = useLocation();
