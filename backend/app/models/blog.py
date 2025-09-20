@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
-from pydantic import BaseModel, ConfigDict, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
+import re
 
 
 class Author(BaseModel):
@@ -32,15 +33,56 @@ class Blog(BaseModel):
         tags: List of category/topic tags for organization
         is_published: Publication status (draft vs published)
     """
-    title: str                          # Blog post title (required)
-    slug: str                           # URL-friendly unique identifier (required)
-    author: Author                      # Author information (nested model)
-    cover_image: Optional[str] = None   # Featured image URL/path (optional)
-    date_published: Optional[datetime] = None  # Publication date (auto-set in API if None)
-    content: str                        # Main blog content (required)
-    tags: List[str] = []               # Category/topic tags (default: empty list)
-    is_published: bool = True          # Publication status (default: published)
+    title: str = Field(..., min_length=1, max_length=200)                  # Blog post title (required)
+    slug: str = Field(..., min_length=1, max_length=100)                   # URL-friendly unique identifier (required)
+    author: Author                                                         # Author information (nested model)
+    cover_image: Optional[str] = None                                      # Featured image URL/path (optional)
+    date_published: Optional[datetime] = None                              # Publication date (auto-set in API if None)
+    content: str = Field(..., min_length=1)                                # Main blog content (required)
+    tags: List[str] = []                                                   # Category/topic tags (default: empty list)
+    is_published: bool = True                                              # Publication status (default: published)
 
+    @field_validator('title')
+    def validate_title(cls, v):
+        # Remove extra whitespace
+        v = ' '.join(v.split())
+        if not v:
+            raise ValueError('Title cannot be empty')
+        return v
+
+    @field_validator('slug')
+    def validate_slug(cls, v):
+        # Ensure slug is URL-safe
+        if not re.match(r'^[a-z0-9-]+$', v):
+            raise ValueError('Slug can only contain lowercase letters, numbers, and hyphens')
+        if v.startswith('-') or v.endswith('-'):
+            raise ValueError('Slug cannot start or end with a hyphen')
+        if '--' in v:
+            raise ValueError('Slug cannot contain consecutive hyphens')
+        return v
+
+    @field_validator('content')
+    def validate_content(cls, v):
+        # Basic XSS prevention - remove/escape dangerous tags
+        dangerous_tags = ['<script', '<iframe', '<object', '<embed', '<form']
+        for tag in dangerous_tags:
+            if tag.lower() in v.lower():
+                raise ValueError('Content contains potentially dangerous HTML tags')
+        return v.strip()
+
+    @field_validator('tags')
+    def validate_tags(cls, v):
+        # Validate each tag
+        validated_tags = []
+        for tag in v:
+            tag = tag.strip().lower()
+            if len(tag) < 1 or len(tag) > 20:
+                raise ValueError('Each tag must be 1-20 characters long')
+            if not re.match(r'^[a-z0-9-]+$', tag):
+                raise ValueError('Tags can only contain lowercase letters, numbers, and hyphens')
+            validated_tags.append(tag)
+        return list(set(validated_tags))  # Remove duplicates
+    
 
 class BlogResponse(Blog):
     """

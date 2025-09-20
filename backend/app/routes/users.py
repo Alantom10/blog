@@ -13,13 +13,14 @@ Admin-only endpoints require the user to have is_admin=True.
 from datetime import datetime, timezone
 from typing import List
 from bson import ObjectId
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from starlette import status
 
 from app.models.user import UserCreate, UserResponse, UserUpdate
 from app.utils.serialization import serialize_for_mongo
 from app.utils.auth import get_current_user, hash_password
 from app.database import users_collection
+from app.middleware.rate_limit import limiter
 
 
 # Initialize router with prefix and tags for API organization
@@ -34,7 +35,8 @@ if users_collection is None:
 
 
 @router.post("", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def create_user(user_create: UserCreate):
+@limiter.limit("5/minute")  # Max 5 user registrations per minute
+def create_user(request: Request, user_create: UserCreate):
     """
     Create a new user account.
     

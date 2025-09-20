@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import os
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from jose import jwt, JWTError
@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from app.database import users_collection
 from bson import ObjectId
 from app.models.user import UserResponse
+from app.middleware.rate_limit import limiter
 
 # Create router for authentication endpoints
 router = APIRouter(
@@ -120,7 +121,8 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> UserResponse:
 
 
 @router.post("/login", response_model=Token)
-def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+@limiter.limit("10/minute")  # Max 10 login attempts per minute
+def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
     """
     OAuth2 compatible login endpoint for Swagger UI
     
