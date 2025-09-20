@@ -6,14 +6,21 @@ from pydantic import BaseModel, HttpUrl
 from starlette import status
 
 from app.utils.serialization import serialize_for_mongo
+from app.utils.security import sanitize_dict
 from app.models.blog import Blog, BlogResponse
 from app.database import blogs_collection
+
+from pymongo.errors import DuplicateKeyError, PyMongoError
+import logging
+
 
 # Create router for blog endpoints
 router = APIRouter(
     prefix="/blogs",  # All endpoints will be prefixed with /blogs
     tags=["blogs"]    # Groups endpoints in API docs
 )
+
+logger = logging.getLogger(__name__)
 
 
 # READ ALL BLOGS
@@ -83,26 +90,46 @@ def create_blog(blog: Blog):
     Raises:
         HTTPException: 400 if blog with same slug already exists
     """
-    # Convert Pydantic model to dictionary for MongoDB
-    blog_dict = serialize_for_mongo(blog)
-    
-    # Set publication date if not provided
-    if not blog_dict.get('date_published'):
-        blog_dict['date_published'] = datetime.now(timezone.utc)
-    
     try:
-        # Insert new blog into database
-        result = blogs_collection.insert_one(blog_dict)
-    except DuplicateKeyError:
-        # Slug already exists - return 400 error
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="A blog with this slug already exists."
-        )
+        # Convert Pydantic model to dictionary for MongoDB
+        blog_dict = serialize_for_mongo(blog)
+        blog_dict = sanitize_dict(blog)
+        
+        # Set publication date if not provided
+        if not blog_dict.get('date_published'):
+            blog_dict['date_published'] = datetime.now(timezone.utc)
+        
+        try:
+            # Insert new blog into database
+            result = blogs_collection.insert_one(blog_dict)
+        except DuplicateKeyError:
+            # Slug already exists - return 400 error
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="A blog with this slug already exists."
+            )
+        
+        # Fetch the created blog to return with proper ID
+        created_blog = blogs_collection.find_one({"_id": result.inserted_id})
+        return BlogResponse(**created_blog, id=str(created_blog["_id"]))
     
-    # Fetch the created blog to return with proper ID
-    created_blog = blogs_collection.find_one({"_id": result.inserted_id})
-    return BlogResponse(**created_blog, id=str(created_blog["_id"]))
+    except HTTPException:
+        # Re-raise HTTP exceptions (these are expected)
+        raise
+    except PyMongoError as e:
+        # Database connection/operation errors
+        logger.error(f"Database error during user creation: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database service temporarily unavailable"
+        )
+    except Exception as e:
+        # Unexpected errors
+        logger.error(f"Unexpected error during user creation: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create user account"
+        )
 
 
 # UPDATE EXISTING BLOG
@@ -121,19 +148,40 @@ def update_blog(slug: str, blog: Blog):
     Raises:
         HTTPException: 404 if blog with given slug is not found
     """
-    # Convert Pydantic model to dictionary for MongoDB
-    blog_dict = serialize_for_mongo(blog)
+    try:
+        # Convert Pydantic model to dictionary for MongoDB
+        blog_dict = serialize_for_mongo(blog)
+        blog_dict = sanitize_dict(blog)
+        
+        # Update blog in database using slug as filter
+        result = blogs_collection.update_one({"slug": slug}, {"$set": blog_dict})
+        
+        if result.matched_count == 0:
+            # No blog found with this slug - return 404 error
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Item not found')
+        
+        # Fetch and return updated blog
+        updated_blog = blogs_collection.find_one({"slug": slug})
+        return BlogResponse(**updated_blog, id=str(updated_blog["_id"]))
     
-    # Update blog in database using slug as filter
-    result = blogs_collection.update_one({"slug": slug}, {"$set": blog_dict})
-    
-    if result.matched_count == 0:
-        # No blog found with this slug - return 404 error
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Item not found')
-    
-    # Fetch and return updated blog
-    updated_blog = blogs_collection.find_one({"slug": slug})
-    return BlogResponse(**updated_blog, id=str(updated_blog["_id"]))
+    except HTTPException:
+        # Re-raise HTTP exceptions (these are expected)
+        raise
+    except PyMongoError as e:
+        # Database connection/operation errors
+        logger.error(f"Database error during user creation: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database service temporarily unavailable"
+        )
+    except Exception as e:
+        # Unexpected errors
+        logger.error(f"Unexpected error during user creation: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create user account"
+        )
+
     
 
 # DELETE BLOG
@@ -151,12 +199,31 @@ def delete_blog(slug: str):
     Raises:
         HTTPException: 404 if blog with given slug is not found
     """
-    # Delete blog from database using slug as filter
-    result = blogs_collection.delete_one({"slug": slug})
-    
-    if result.deleted_count == 0:
-        # No blog found with this slug - return 404 error
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Item not found')
-    
-    # Return success message
-    return {"detail": "Deleted Successfully"}
+    try:
+        # Delete blog from database using slug as filter
+        result = blogs_collection.delete_one({"slug": slug})
+        
+        if result.deleted_count == 0:
+            # No blog found with this slug - return 404 error
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Item not found')
+        
+        # Return success message
+        return {"detail": "Deleted Successfully"}
+
+    except HTTPException:
+        # Re-raise HTTP exceptions (these are expected)
+        raise
+    except PyMongoError as e:
+        # Database connection/operation errors
+        logger.error(f"Database error during user creation: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database service temporarily unavailable"
+        )
+    except Exception as e:
+        # Unexpected errors
+        logger.error(f"Unexpected error during user creation: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create user account"
+        )

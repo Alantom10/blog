@@ -18,9 +18,13 @@ from starlette import status
 
 from app.models.user import UserCreate, UserResponse, UserUpdate
 from app.utils.serialization import serialize_for_mongo
+from app.utils.security import sanitize_dict
 from app.utils.auth import get_current_user, hash_password
 from app.database import users_collection
 from app.middleware.rate_limit import limiter
+
+from pymongo.errors import DuplicateKeyError, PyMongoError
+import logging
 
 
 # Initialize router with prefix and tags for API organization
@@ -28,6 +32,9 @@ router = APIRouter(
     prefix="/users",
     tags=["users"]
 )
+
+logger = logging.getLogger(__name__)
+
 
 # Ensure database connection is established
 if users_collection is None:
@@ -55,53 +62,73 @@ def create_user(request: Request, user_create: UserCreate):
     Raises:
         HTTPException 400: Email already registered or username already taken
     """
-    # Check for duplicate email
-    existing_email = users_collection.find_one({"email": user_create.email})
-    if existing_email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail="Email already registered"
-        )
+    try:
+        # Check for duplicate email
+        existing_email = users_collection.find_one({"email": user_create.email})
+        if existing_email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, 
+                detail="Email already registered"
+            )
+        
+        # Check for duplicate username
+        existing_username = users_collection.find_one({"username": user_create.username})
+        if existing_username:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, 
+                detail="Username already taken"
+            )
+
+        # Hash password securely using bcrypt
+        hashed_pw = hash_password(user_create.password)
+
+        # Convert Pydantic model to dictionary for MongoDB storage
+        user_dict = serialize_for_mongo(user_create)
+        blog_dict = sanitize_dict(user_dict)
+
+        # Remove plain password and add secure/system fields
+        user_dict.pop("password", None)  # Remove plain password for security
+        user_dict.update({
+            "hashed_password": hashed_pw,
+            "created_at": datetime.now(timezone.utc),
+            "is_active": True,      # New users are active by default
+            "is_admin": False       # New users are not admin by default
+        })
+
+        # Insert user into database
+        result = users_collection.insert_one(user_dict)
+
+        # Prepare response data (exclude sensitive information)
+        response_dict = {
+            "id": str(result.inserted_id),
+            "email": user_dict["email"],
+            "username": user_dict["username"],
+            "full_name": user_dict["full_name"],
+            "profile_image": user_dict.get("profile_image"),
+            "is_active": user_dict["is_active"],
+            "is_admin": user_dict["is_admin"],
+            "created_at": user_dict["created_at"]
+        }
+
+        return UserResponse(**response_dict)
     
-    # Check for duplicate username
-    existing_username = users_collection.find_one({"username": user_create.username})
-    if existing_username:
+    except HTTPException:
+        # Re-raise HTTP exceptions (these are expected)
+        raise
+    except PyMongoError as e:
+        # Database connection/operation errors
+        logger.error(f"Database error during user creation: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, 
-            detail="Username already taken"
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database service temporarily unavailable"
         )
-
-    # Hash password securely using bcrypt
-    hashed_pw = hash_password(user_create.password)
-
-    # Convert Pydantic model to dictionary for MongoDB storage
-    user_dict = serialize_for_mongo(user_create)
-
-    # Remove plain password and add secure/system fields
-    user_dict.pop("password", None)  # Remove plain password for security
-    user_dict.update({
-        "hashed_password": hashed_pw,
-        "created_at": datetime.now(timezone.utc),
-        "is_active": True,      # New users are active by default
-        "is_admin": False       # New users are not admin by default
-    })
-
-    # Insert user into database
-    result = users_collection.insert_one(user_dict)
-
-    # Prepare response data (exclude sensitive information)
-    response_dict = {
-        "id": str(result.inserted_id),
-        "email": user_dict["email"],
-        "username": user_dict["username"],
-        "full_name": user_dict["full_name"],
-        "profile_image": user_dict.get("profile_image"),
-        "is_active": user_dict["is_active"],
-        "is_admin": user_dict["is_admin"],
-        "created_at": user_dict["created_at"]
-    }
-
-    return UserResponse(**response_dict)
+    except Exception as e:
+        # Unexpected errors
+        logger.error(f"Unexpected error during user creation: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create user account"
+        )
 
 
 @router.get("", response_model=List[UserResponse], status_code=status.HTTP_200_OK)
@@ -241,49 +268,68 @@ def update_user(
         HTTPException 404: User with given ID not found
         HTTPException 400: Invalid user ID format
     """
-    # Check permissions: admin can update anyone, user can update themselves
-    if not current_user.is_admin and str(current_user.id) != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, 
-            detail="You can only update your own profile unless you are an admin"
-        )
-    
     try:
-        object_id = ObjectId(user_id)
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid user ID format"
-        )
-    
-    # Prepare update data (only include non-None values)
-    update_data = {k: v for k, v in update.model_dump().items() if v is not None}
-    
-    # Hash password if it's being updated
-    if "password" in update_data:
-        update_data["hashed_password"] = hash_password(update_data.pop("password"))
-    
-    # Add update timestamp
-    update_data["updated_at"] = datetime.now(timezone.utc)
+        # Check permissions: admin can update anyone, user can update themselves
+        if not current_user.is_admin and str(current_user.id) != user_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, 
+                detail="You can only update your own profile unless you are an admin"
+            )
+        
+        try:
+            object_id = ObjectId(user_id)
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid user ID format"
+            )
+        
+        # Prepare update data (only include non-None values)
+        update_data = {k: v for k, v in update.model_dump().items() if v is not None}
+        
+        # Hash password if it's being updated
+        if "password" in update_data:
+            update_data["hashed_password"] = hash_password(update_data.pop("password"))
+        
+        # Add update timestamp
+        update_data["updated_at"] = datetime.now(timezone.utc)
 
-    # Update user in database
-    result = users_collection.update_one(
-        {"_id": object_id}, 
-        {"$set": update_data}
-    )
-    
-    if result.matched_count == 0:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="User not found"
+        # Update user in database
+        result = users_collection.update_one(
+            {"_id": object_id}, 
+            {"$set": update_data}
         )
+        
+        if result.matched_count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, 
+                detail="User not found"
+            )
 
-    # Retrieve and return updated user
-    updated_user = users_collection.find_one({"_id": object_id})
-    updated_user["id"] = str(updated_user["_id"])
-    del updated_user["_id"]
+        # Retrieve and return updated user
+        updated_user = users_collection.find_one({"_id": object_id})
+        updated_user["id"] = str(updated_user["_id"])
+        del updated_user["_id"]
+        
+        return UserResponse(**updated_user)
     
-    return UserResponse(**updated_user)
+    except HTTPException:
+        # Re-raise HTTP exceptions (these are expected)
+        raise
+    except PyMongoError as e:
+        # Database connection/operation errors
+        logger.error(f"Database error during user creation: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database service temporarily unavailable"
+        )
+    except Exception as e:
+        # Unexpected errors
+        logger.error(f"Unexpected error during user creation: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create user account"
+        )
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -308,27 +354,46 @@ def delete_user(user_id: str, current_user: UserResponse = Depends(get_current_u
         HTTPException 400: Invalid user ID format
     """
     # Check admin privileges - only admins can delete users
-    if not current_user.is_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, 
-            detail="Admin privileges required to delete user accounts"
-        )
-    
     try:
-        object_id = ObjectId(user_id)
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid user ID format"
-        )
-    
-    # Perform deletion
-    result = users_collection.delete_one({"_id": object_id})
-    
-    if result.deleted_count == 0:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="User not found"
-        )
+        if not current_user.is_admin:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, 
+                detail="Admin privileges required to delete user accounts"
+            )
+        
+        try:
+            object_id = ObjectId(user_id)
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid user ID format"
+            )
+        
+        # Perform deletion
+        result = users_collection.delete_one({"_id": object_id})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, 
+                detail="User not found"
+            )
 
-    return {"detail": "User account deleted successfully"}
+        return {"detail": "User account deleted successfully"}
+
+    except HTTPException:
+        # Re-raise HTTP exceptions (these are expected)
+        raise
+    except PyMongoError as e:
+        # Database connection/operation errors
+        logger.error(f"Database error during user creation: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database service temporarily unavailable"
+        )
+    except Exception as e:
+        # Unexpected errors
+        logger.error(f"Unexpected error during user creation: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create user account"
+        )

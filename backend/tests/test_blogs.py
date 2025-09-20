@@ -70,7 +70,10 @@ def test_read_one_not_found():
     """
     response = client.get("/blogs/1")
     assert response.status_code == status.HTTP_404_NOT_FOUND
-    assert response.json() == {'detail': 'Item not found'}
+    assert response.json() == {
+        "detail": "Item not found",
+        "status_code": 404
+    }
 
 
 def test_create_blog():
@@ -199,7 +202,10 @@ def test_update_blog_not_found():
     # Try to update non-existent blog
     response = client.put('/blogs/1', json=request_data)
     assert response.status_code == status.HTTP_404_NOT_FOUND
-    assert response.json() == {'detail': 'Item not found'}
+    assert response.json() == {
+        "detail": "Item not found",
+        "status_code": 404
+    }
 
 
 def test_delete_blog():
@@ -240,7 +246,10 @@ def test_delete_blog():
     # Verify blog was deleted - should return 404
     get_response = client.get(f"/blogs/{blog_data['slug']}")
     assert get_response.status_code == status.HTTP_404_NOT_FOUND
-    assert get_response.json() == {'detail': 'Item not found'}
+    assert get_response.json() == {
+        "detail": "Item not found",
+        "status_code": 404
+    }
 
 
 def test_delete_blog_not_found():
@@ -251,4 +260,7 @@ def test_delete_blog_not_found():
     """
     response = client.delete('/blogs/1')
     assert response.status_code == status.HTTP_404_NOT_FOUND
-    assert response.json() == {'detail': 'Item not found'}
+    assert response.json() == {
+        "detail": "Item not found",
+        "status_code": 404
+    }

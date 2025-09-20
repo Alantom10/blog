@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from app.routes import blogs, users
 from app.utils import auth
 from app.database import blogs_collection, users_collection
@@ -10,6 +10,12 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from app.middleware.rate_limit import limiter
+from fastapi.exceptions import RequestValidationError
+from app.middleware.error_handlers import (
+    validation_exception_handler,
+    http_exception_handler,
+    general_exception_handler
+)
 
 
 app = FastAPI()
@@ -17,6 +23,10 @@ app = FastAPI()
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(SlowAPIMiddleware)
+
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(HTTPException, http_exception_handler)
+app.add_exception_handler(Exception, general_exception_handler)
 
 # Allow React frontend to talk to backend
 app.add_middleware(
