@@ -2,6 +2,7 @@ import axios from "axios";
 
 const AUTH_URL = "http://127.0.0.1:8000/auth"; // Your FastAPI auth endpoint
 
+
 const handleError = (error, defaultMessage) => {
   if (error.response) {
     throw new Error(error.response.data.detail || defaultMessage);

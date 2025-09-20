@@ -1,57 +1,50 @@
 import axios from "axios";
+import { authApi, handleError } from './apiClient';
 
-const API_URL = "http://127.0.0.1:8000/blogs"; // FastAPI backend URL
+const BASE_URL = "http://127.0.0.1:8000"; // FastAPI backend URL
 
-
-const handleError = (error, defaultMessage) => {
-  if (error.response) {
-    throw new Error(error.response.data.detail || defaultMessage);
-  }
-  throw error;
-};
 
 export const getBlogs = async () => {
     try {
-        const response = await axios.get(API_URL);
+        const response = await axios.get(`${BASE_URL}/blogs`);
         return response.data;
     } catch (error) {
         handleError(error, "Error fetching blogs");
     }
-}
+};
 
 export const getBlogBySlug = async (slug) => {
     try {
-        const response = await axios.get(`${API_URL}/${slug}`);
+        const response = await axios.get(`${BASE_URL}/blogs/${slug}`);
         return response.data;
     } catch (error) {
         handleError(error, "Error fetching blog");
     }
-}
+};
 
 export const createBlog = async (blog) => {
     try {
-        console.log("Got here");
-        const response = await axios.post(API_URL, blog);
+        const response = await authApi.post('/blogs', blog);
         return response.data;
     } catch (error) {
         handleError(error, "Error creating blog");
     }
-}
+};
 
 export const updateBlog = async (slug, blog) => {
     try {
-        const response = await axios.put(`${API_URL}/${slug}`, blog);
+        const response = await authApi.put(`/blogs/${slug}`, blog);
         return response.data;
     } catch (error) {
         handleError(error, "Error updating blog");
     }
-}
+};
 
 export const deleteBlog = async (slug) => {
     try {
-        const response = await axios.delete(`${API_URL}/${slug}`);
+        const response = await authApi.delete(`/blogs/${slug}`);
         return response.data;
     } catch (error) {
         handleError(error, "Error deleting blog");
     }
-}
+};
