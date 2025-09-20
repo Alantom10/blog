@@ -43,7 +43,7 @@ def create_test_user_sync(email: str, username: str, is_admin: bool = False):
         "email": email,
         "username": username,
         "full_name": "Test User",
-        "hashed_password": hash_password("testpassword123"),
+        "hashed_password": hash_password("Testpassword.123"),
         "created_at": datetime.now(timezone.utc),
         "is_active": True,
         "is_admin": is_admin
@@ -53,7 +53,7 @@ def create_test_user_sync(email: str, username: str, is_admin: bool = False):
     return str(result.inserted_id)
 
 
-def get_auth_headers(username: str = "testuser", password: str = "testpassword123"):
+def get_auth_headers(username: str = "testuser", password: str = "Testpassword.123"):
     """Get authentication headers"""
     login_response = client.post("/auth/login", data={
         "username": username,
@@ -75,7 +75,7 @@ def test_create_user():
         "email": email,
         "username": username,
         "full_name": "Test User",
-        "password": "securepassword123"
+        "password": "Securepassword.123"
     }
     
     response = client.post("/users", json=user_data)
@@ -100,7 +100,7 @@ def test_create_user_duplicate_email():
         "email": email,
         "username": "user1",
         "full_name": "User One",
-        "password": "password123"
+        "password": "Password.123"
     }
     
     # Create first user
@@ -122,7 +122,7 @@ def test_create_user_duplicate_username():
         "email": create_unique_email(),
         "username": username,
         "full_name": "User One",
-        "password": "password123"
+        "password": "Password.123"
     }
     
     # Create first user
