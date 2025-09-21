@@ -2,8 +2,9 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import os
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status, Response
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security.utils import get_authorization_scheme_param
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 from pydantic import BaseModel
@@ -69,8 +70,26 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-# OAuth2 scheme for Swagger UI authentication
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+class OAuth2PasswordBearerCookie(OAuth2PasswordBearer):
+    def __call__(self, request: Request):
+        # First try Authorization header
+        authorization = request.headers.get("Authorization")
+        scheme, param = get_authorization_scheme_param(authorization)
+        if authorization and scheme.lower() == "bearer":
+            return param
+        
+        # Fallback to cookie
+        token = request.cookies.get("access_token")
+        if not token:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Not authenticated",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return token
+
+# Replace your existing oauth2_scheme
+oauth2_scheme = OAuth2PasswordBearerCookie(tokenUrl="/auth/login")
 
 
 def get_current_user(token: str = Depends(oauth2_scheme)) -> UserResponse:
@@ -122,7 +141,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> UserResponse:
 
 @router.post("/login", response_model=Token)
 @limiter.limit("10/minute")  # Max 10 login attempts per minute
-def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
+def login_for_access_token(request: Request, response: Response, form_data: OAuth2PasswordRequestForm = Depends()):
     """
     OAuth2 compatible login endpoint for Swagger UI
     
@@ -150,11 +169,22 @@ def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestFor
     access_token = create_access_token(
         data={"sub": str(user["_id"])}  # Use user ID, not username
     )
+
+    # Set httpOnly cookie
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,              # Prevents JavaScript access
+        secure=False,                # HTTPS only (set to False for development)
+        samesite="strict",          # CSRF protection
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60  # Expiry in seconds
+    )
+
     return {"access_token": access_token, "token_type": "bearer"}
 
 
 @router.post("/login-json", response_model=Token)
-def login_with_json(login_data: LoginRequest):
+def login_with_json(response: Response, login_data: LoginRequest):
     """
     Alternative login endpoint that accepts JSON body
     
@@ -179,7 +209,24 @@ def login_with_json(login_data: LoginRequest):
     access_token = create_access_token(
         data={"sub": str(user["_id"])}
     )
+
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,              # Prevents JavaScript access
+        secure=False,                # HTTPS only (set to False for development)
+        samesite="strict",          # CSRF protection
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60  # Expiry in seconds
+    )
+
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.post("/logout")
+def logout(response: Response):
+    """Clear the authentication cookie"""
+    response.delete_cookie(key="access_token")
+    return {"message": "Logged out successfully"}
 
 
 @router.get("/me", response_model=UserResponse)

@@ -12,19 +12,19 @@ const handleError = (error, defaultMessage) => {
 
 export const login = async (credentials) => {
     try {
-        const response = await axios.post(`${AUTH_URL}/login-json`, credentials);
+        const response = await axios.post(`${AUTH_URL}/login`, credentials, {
+            withCredentials: true
+        });
         return response.data;
     } catch (error) {
         handleError(error, "Login failed");
     }
 };
 
-export const getCurrentUser = async (token) => {
+export const getCurrentUser = async () => {
     try {
         const response = await axios.get(`${AUTH_URL}/me`, {
-            headers: { 
-                Authorization: `Bearer ${token}` 
-            }
+            withCredentials: true
         });
         return response.data;
     } catch (error) {
@@ -32,8 +32,15 @@ export const getCurrentUser = async (token) => {
     }
 };
 
-export const logout = () => {
-    // Remove token from localStorage
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+export const logout = async () => {
+    try {
+        await axios.post(`${AUTH_URL}/logout`, {}, {
+            withCredentials: true
+        });
+        
+        // Remove any user data from localStorage
+        localStorage.removeItem('user');
+    } catch (error) {
+        console.error("Logout error:", error);
+    }
 };

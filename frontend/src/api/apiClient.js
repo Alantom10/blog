@@ -5,18 +5,9 @@ const BASE_URL = "http://127.0.0.1:8000";
 
 export const authApi = axios.create({
     baseURL: BASE_URL,
+    withCredentials: true,
 });
 
-authApi.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-    },
-    (error) => Promise.reject(error)
-);
 
 // Add this response interceptor
 authApi.interceptors.response.use(
@@ -24,7 +15,6 @@ authApi.interceptors.response.use(
     (error) => {
         if (error.response?.status === 401) {
             // Token expired or invalid
-            localStorage.removeItem('token');
             localStorage.removeItem('user');
             
             // Redirect to login

@@ -35,6 +35,7 @@ class Blog(BaseModel):
     """
     title: str = Field(..., min_length=1, max_length=200)                  # Blog post title (required)
     slug: str = Field(..., min_length=1, max_length=100)                   # URL-friendly unique identifier (required)
+    author_id: str = Field(..., description="User ID of the blog author")  # Author ID to connect blog to author
     author: Author                                                         # Author information (nested model)
     cover_image: Optional[str] = None                                      # Featured image URL/path (optional)
     date_published: Optional[datetime] = None                              # Publication date (auto-set in API if None)
@@ -59,6 +60,12 @@ class Blog(BaseModel):
             raise ValueError('Slug cannot start or end with a hyphen')
         if '--' in v:
             raise ValueError('Slug cannot contain consecutive hyphens')
+        return v
+    
+    @field_validator('author_id')
+    def validate_author_id(cls, v):
+        if len(v) != 24:  # MongoDB ObjectId length
+            raise ValueError('Invalid author ID format')
         return v
 
     @field_validator('content')

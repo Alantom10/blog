@@ -200,7 +200,7 @@ def test_get_me_no_token():
     """Test accessing protected endpoint without token"""
     response = client.get("/auth/me")
     assert response.status_code == 401
-    assert "Not authenticated" in response.json()["detail"]
+    assert "Could not validate credentials" in response.json()["detail"]
 
 
 def test_get_me_invalid_token():
