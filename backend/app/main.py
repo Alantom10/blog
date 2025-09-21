@@ -5,6 +5,9 @@ from app.database import blogs_collection, users_collection
 from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 
+from contextlib import asynccontextmanager
+from app.indexes import create_indexes
+
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
@@ -18,7 +21,21 @@ from app.middleware.error_handlers import (
 )
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    try:
+        create_indexes()
+    except Exception as e:
+        print(f"Warning: Could not create indexes: {e}")
+    
+    yield
+    
+    # Shutdown (if needed)
+    pass
+
+
+app = FastAPI(lifespan=lifespan)
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)

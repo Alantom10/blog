@@ -84,7 +84,7 @@ def create_user(request: Request, user_create: UserCreate):
 
         # Convert Pydantic model to dictionary for MongoDB storage
         user_dict = serialize_for_mongo(user_create)
-        blog_dict = sanitize_dict(user_dict)
+        user_dict = sanitize_dict(user_dict)
 
         # Remove plain password and add secure/system fields
         user_dict.pop("password", None)  # Remove plain password for security

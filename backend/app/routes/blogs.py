@@ -37,7 +37,10 @@ def get_blogs(skip: int = 0, limit: int = 10):
         List[BlogResponse]: List of all blog posts
     """
     # Fetch blogs from database with pagination
-    blogs = list(blogs_collection.find().skip(skip).limit(limit))
+    blogs = list(blogs_collection.find()
+                .sort("date_published", -1)
+                .skip(skip)
+                .limit(limit))
     
     # Convert MongoDB _id to string id for each blog
     for blog in blogs:
@@ -93,7 +96,7 @@ def create_blog(blog: Blog):
     try:
         # Convert Pydantic model to dictionary for MongoDB
         blog_dict = serialize_for_mongo(blog)
-        blog_dict = sanitize_dict(blog)
+        blog_dict = sanitize_dict(blog_dict)
         
         # Set publication date if not provided
         if not blog_dict.get('date_published'):
@@ -151,7 +154,7 @@ def update_blog(slug: str, blog: Blog):
     try:
         # Convert Pydantic model to dictionary for MongoDB
         blog_dict = serialize_for_mongo(blog)
-        blog_dict = sanitize_dict(blog)
+        blog_dict = sanitize_dict(blog_dict)
         
         # Update blog in database using slug as filter
         result = blogs_collection.update_one({"slug": slug}, {"$set": blog_dict})
