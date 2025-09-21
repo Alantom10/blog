@@ -20,7 +20,8 @@ from app.models.user import UserCreate, UserResponse, UserUpdate
 from app.utils.serialization import serialize_for_mongo
 from app.utils.security import sanitize_dict
 from app.utils.auth import get_current_user, hash_password
-from app.database import users_collection
+from app.database import users_collection, blogs_collection
+from app.models.blog import BlogResponse
 from app.middleware.rate_limit import limiter
 
 from pymongo.errors import DuplicateKeyError, PyMongoError
@@ -186,6 +187,29 @@ def get_my_profile(current_user: UserResponse = Depends(get_current_user)):
         HTTPException 401: User not authenticated
     """
     return current_user
+
+
+@router.get("/my-blogs", response_model=List[BlogResponse])
+def get_my_blogs(
+    current_user: UserResponse = Depends(get_current_user),
+    skip: int = 0, 
+    limit: int = 10,
+    published_only: bool = False
+):
+    """Get blogs created by current user"""
+    query = {"author_id": current_user.id}
+    if published_only:
+        query["is_published"] = True
+        
+    blogs = list(blogs_collection.find(query)
+                .sort("date_published", -1)
+                .skip(skip).limit(limit))
+    
+    for blog in blogs:
+        blog["id"] = str(blog["_id"])
+        del blog["_id"]
+    
+    return blogs
 
 
 @router.get("/{user_id}", response_model=UserResponse, status_code=status.HTTP_200_OK)

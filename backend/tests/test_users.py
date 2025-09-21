@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 from fastapi import status
 from app.main import app
 from app.utils.auth import hash_password
-from app.database import users_collection
+from app.database import users_collection, blogs_collection
 from bson import ObjectId
 from pymongo import MongoClient
 import uuid
@@ -208,6 +208,121 @@ def test_get_user_by_id_admin():
     user_data = response.json()
     assert user_data["email"] == target_email
     assert user_data["id"] == target_id
+
+
+def test_get_my_blogs():
+    """Test GET /users/my-blogs - user gets their own blogs"""
+    # Create test user
+    user_email = create_unique_email()
+    user_username = f"bloguser{uuid.uuid4().hex[:8]}"
+    user_id = create_test_user_sync(user_email, user_username, False)
+    
+    # Create test blogs for this user
+    blog1_data = {
+        "title": "My First Blog",
+        "slug": "my-first-blog",
+        "author_id": user_id,
+        "author": {"name": "Test User", "image": None},
+        "content": "First blog content",
+        "is_published": True,
+        "date_published": datetime.now(timezone.utc)
+    }
+    
+    blog2_data = {
+        "title": "My Draft Blog",
+        "slug": "my-draft-blog", 
+        "author_id": user_id,
+        "author": {"name": "Test User", "image": None},
+        "content": "Draft blog content",
+        "is_published": False,
+        "date_published": datetime.now(timezone.utc)
+    }
+    
+    # Insert blogs directly into database
+    blogs_collection.insert_one(blog1_data)
+    blogs_collection.insert_one(blog2_data)
+    
+    try:
+        headers = get_auth_headers(user_username)
+        response = client.get("/users/my-blogs", headers=headers)
+        
+        assert response.status_code == status.HTTP_200_OK
+        blogs = response.json()
+        assert len(blogs) == 2  # Should get both published and draft
+        
+        # Check blog data
+        blog_titles = [blog["title"] for blog in blogs]
+        assert "My First Blog" in blog_titles
+        assert "My Draft Blog" in blog_titles
+        
+    finally:
+        # Cleanup
+        blogs_collection.delete_many({"author_id": user_id})
+
+
+def test_get_my_blogs_published_only():
+    """Test GET /users/my-blogs with published_only=true"""
+    user_email = create_unique_email()
+    user_username = f"bloguser{uuid.uuid4().hex[:8]}" 
+    user_id = create_test_user_sync(user_email, user_username, False)
+    
+    # Create published and draft blogs
+    published_blog = {
+        "title": "Published Blog",
+        "slug": "published-blog",
+        "author_id": user_id,
+        "author": {"name": "Test User", "image": None},
+        "content": "Published content",
+        "is_published": True
+    }
+    
+    draft_blog = {
+        "title": "Draft Blog", 
+        "slug": "draft-blog",
+        "author_id": user_id,
+        "author": {"name": "Test User", "image": None},
+        "content": "Draft content",
+        "is_published": False
+    }
+    
+    blogs_collection.insert_one(published_blog)
+    blogs_collection.insert_one(draft_blog)
+    
+    try:
+        headers = get_auth_headers(user_username)
+        response = client.get("/users/my-blogs?published_only=true", headers=headers)
+        
+        assert response.status_code == status.HTTP_200_OK
+        blogs = response.json()
+        assert len(blogs) == 1  # Should only get published blog
+        assert blogs[0]["title"] == "Published Blog"
+        
+    finally:
+        blogs_collection.delete_many({"author_id": user_id})
+
+
+def test_get_my_blogs_empty():
+    """Test GET /users/my-blogs when user has no blogs"""
+    user_email = create_unique_email()
+    user_username = f"nobloguser{uuid.uuid4().hex[:8]}"
+    user_id = create_test_user_sync(user_email, user_username, False)
+    
+    try:
+        headers = get_auth_headers(user_username)
+        response = client.get("/users/my-blogs", headers=headers)
+        
+        assert response.status_code == status.HTTP_200_OK
+        blogs = response.json()
+        assert len(blogs) == 0
+        
+    finally:
+        pass  # No blogs to cleanup
+
+
+def test_get_my_blogs_unauthorized():
+    """Test GET /users/my-blogs without authentication"""
+    response = client.get("/users/my-blogs")
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 def test_update_own_profile():

@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from typing import Any, Dict, List
 from pymongo.errors import DuplicateKeyError
 from pydantic import BaseModel, HttpUrl
@@ -7,8 +7,10 @@ from starlette import status
 
 from app.utils.serialization import serialize_for_mongo
 from app.utils.security import sanitize_dict
+from app.utils.auth import get_current_user
 from app.models.blog import Blog, BlogResponse
 from app.database import blogs_collection
+from app.models.user import UserResponse
 
 from pymongo.errors import DuplicateKeyError, PyMongoError
 import logging
@@ -80,7 +82,7 @@ def get_blog(slug: str):
 
 # CREATE NEW BLOG
 @router.post("", response_model=BlogResponse, status_code=status.HTTP_201_CREATED)
-def create_blog(blog: Blog):
+def create_blog(blog: Blog, current_user: UserResponse = Depends(get_current_user)):
     """
     Create a new blog post
     
@@ -97,6 +99,15 @@ def create_blog(blog: Blog):
         # Convert Pydantic model to dictionary for MongoDB
         blog_dict = serialize_for_mongo(blog)
         blog_dict = sanitize_dict(blog_dict)
+
+        # Override author_id with current user's ID (security)
+        blog_dict["author_id"] = current_user.id
+
+        # Also update author info to match current user
+        blog_dict["author"] = {
+            "name": current_user.full_name,
+            "image": str(current_user.profile_image) if current_user.profile_image else None
+        }
         
         # Set publication date if not provided
         if not blog_dict.get('date_published'):
@@ -137,7 +148,7 @@ def create_blog(blog: Blog):
 
 # UPDATE EXISTING BLOG
 @router.put("/{slug}", response_model=BlogResponse, status_code=status.HTTP_200_OK)
-def update_blog(slug: str, blog: Blog):
+def update_blog(slug: str, blog: Blog, current_user: UserResponse = Depends(get_current_user)):
     """
     Update an existing blog by slug
     
@@ -152,6 +163,14 @@ def update_blog(slug: str, blog: Blog):
         HTTPException: 404 if blog with given slug is not found
     """
     try:
+        # Check if user owns this blog or is admin
+        existing_blog = blogs_collection.find_one({"slug": slug})
+        if not existing_blog:
+            raise HTTPException(status_code=404, detail='Blog not found')
+            
+        if existing_blog["author_id"] != current_user.id and not current_user.is_admin:
+            raise HTTPException(status_code=403, detail="You can only edit your own blogs")
+        
         # Convert Pydantic model to dictionary for MongoDB
         blog_dict = serialize_for_mongo(blog)
         blog_dict = sanitize_dict(blog_dict)
@@ -189,7 +208,7 @@ def update_blog(slug: str, blog: Blog):
 
 # DELETE BLOG
 @router.delete("/{slug}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_blog(slug: str):
+def delete_blog(slug: str, current_user: UserResponse = Depends(get_current_user)):
     """
     Delete a blog by slug
     
@@ -203,6 +222,14 @@ def delete_blog(slug: str):
         HTTPException: 404 if blog with given slug is not found
     """
     try:
+        # Check if user owns this blog or is admin
+        existing_blog = blogs_collection.find_one({"slug": slug})
+        if not existing_blog:
+            raise HTTPException(status_code=404, detail='Blog not found')
+            
+        if existing_blog["author_id"] != current_user.id and not current_user.is_admin:
+            raise HTTPException(status_code=403, detail="You can only edit your own blogs")
+        
         # Delete blog from database using slug as filter
         result = blogs_collection.delete_one({"slug": slug})
         

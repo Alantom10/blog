@@ -250,7 +250,7 @@ def authenticate_user(username: str, password: str):
     Authenticate user credentials against database
     
     Args:
-        username: Username to authenticate
+        username: Username or Email to authenticate
         password: Plain text password to verify
         
     Returns:
@@ -259,6 +259,9 @@ def authenticate_user(username: str, password: str):
     """
     # Find user by username
     user = users_collection.find_one({"username": username})
+    if not user:
+        # Try matching email
+        user = users_collection.find_one({"email": username})
     if not user:
         return False
     

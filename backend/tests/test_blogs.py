@@ -1,8 +1,10 @@
 from datetime import datetime, timezone
+import uuid
 from fastapi.testclient import TestClient
 from fastapi import status
 from app.main import app
 from app.database import blogs_collection
+from tests.test_users import create_test_user_sync, create_unique_email, get_auth_headers
 
 
 # Create test client for FastAPI application
@@ -37,10 +39,16 @@ def test_read_one():
     Tests retrieval of a specific blog by slug.
     This test assumes a blog with slug "first-blog" exists.
     """
+    # Create a test user first
+    user_email = create_unique_email()
+    user_username = f"bloguser{uuid.uuid4().hex[:8]}"
+    user_id = create_test_user_sync(user_email, user_username, False)
+
     # First insert a test blog into the database
     test_data = {
         "title": "Test Blog",
         "slug": "test-blog",
+        "author_id": user_id,
         "author": {
             "name": "Author",
             "image": None
@@ -86,10 +94,16 @@ def test_create_blog():
     3. Verify blog was actually saved in database
     4. Clean up test data
     """
+    # Create a test user first
+    user_email = create_unique_email()
+    user_username = f"bloguser{uuid.uuid4().hex[:8]}"
+    user_id = create_test_user_sync(user_email, user_username, False)
+    
     # Sample blog data for testing
     request_data = {
         "title": "New Blog!",
         "slug": "new-blog",
+        "author_id": user_id,
         "author": {
             "name": "Test Author",
             "image": None
@@ -100,8 +114,9 @@ def test_create_blog():
     }
 
     try:
-        # Send POST request to create blog
-        response = client.post("/blogs", json=request_data)
+        # Get auth headers
+        headers = get_auth_headers(user_username)
+        response = client.post("/blogs", json=request_data, headers=headers)
 
         # Verify API response
         assert response.status_code == status.HTTP_201_CREATED
@@ -109,7 +124,6 @@ def test_create_blog():
         assert data["title"] == request_data["title"]
         assert data["content"] == request_data["content"]
         assert data["slug"] == request_data["slug"]
-        assert data["author"] == request_data["author"]
 
         # Verify blog was saved in database
         db_blog = blogs_collection.find_one({"slug": request_data["slug"]})
@@ -133,10 +147,16 @@ def test_update_blog():
     4. Verify database was actually updated
     5. Clean up test data
     """
+    # Create a test user first
+    user_email = create_unique_email()
+    user_username = f"bloguser{uuid.uuid4().hex[:8]}"
+    user_id = create_test_user_sync(user_email, user_username, False)
+
     # First insert a test blog into the database
     blogs_collection.insert_one({
         "title": "Old Blog",
         "slug": "update-blog",
+        "author_id": user_id,
         "author": {
             "name": "Old Author",
             "image": None
@@ -149,19 +169,21 @@ def test_update_blog():
     # Updated blog data
     update_data = {
         "title": "Updated Blog",
-        "content": "This is updated content",
         "slug": "update-blog",
+        "author_id": user_id,
         "author": {
             "name": "Updated Author",
             "image": None
         },
         "date_published": datetime.now(timezone.utc).isoformat(),
+        "content": "This is updated content",
         "tags": ["test", "blog"]
     }
 
     try:
-        # Send PUT request to update blog
-        response = client.put("/blogs/update-blog", json=update_data)
+        # Get auth headers
+        headers = get_auth_headers(user_username)
+        response = client.put("/blogs/update-blog", json=update_data, headers=headers)
 
         # Verify API response
         assert response.status_code == status.HTTP_200_OK
@@ -187,10 +209,16 @@ def test_update_blog_not_found():
     
     Verifies that attempting to update a non-existent blog returns 404 error.
     """
+    # Create a test user first
+    user_email = create_unique_email()
+    user_username = f"bloguser{uuid.uuid4().hex[:8]}"
+    user_id = create_test_user_sync(user_email, user_username, False)
+
     request_data = {
         "title": "Updated Blog",
         "content": "This is updated content",
         "slug": "update-blog",
+        "author_id": user_id,
         "author": {
             "name": "Updated Author",
             "image": None
@@ -199,11 +227,13 @@ def test_update_blog_not_found():
         "tags": ["test", "blog"]
     }
 
+    # Get auth headers
+    headers = get_auth_headers(user_username)
     # Try to update non-existent blog
-    response = client.put('/blogs/1', json=request_data)
+    response = client.put('/blogs/1', json=request_data, headers=headers)
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert response.json() == {
-        "detail": "Item not found",
+        "detail": "Blog not found",
         "status_code": 404
     }
 
@@ -217,11 +247,17 @@ def test_delete_blog():
     2. Delete the blog via API
     3. Verify deletion was successful (blog no longer accessible)
     """
+    # Create a test user first
+    user_email = create_unique_email()
+    user_username = f"bloguser{uuid.uuid4().hex[:8]}"
+    user_id = create_test_user_sync(user_email, user_username, False)
+
     # Sample blog data for deletion test
     blog_data = {
         "title": "Delete Me",
         "content": "This blog will be deleted.",
         "slug": "delete-me",
+        "author_id": user_id,
         "author": {
             "name": "Test Author",
             "image": None
@@ -230,8 +266,10 @@ def test_delete_blog():
         "tags": ["test", "blog"]
     }
 
+    # Get auth headers
+    headers = get_auth_headers(user_username)
     # Create test blog
-    create_response = client.post("/blogs", json=blog_data)
+    create_response = client.post("/blogs", json=blog_data, headers=headers)
 
     if create_response.status_code != status.HTTP_201_CREATED:
         print(f"Error: {create_response.status_code}")
@@ -240,7 +278,7 @@ def test_delete_blog():
     assert create_response.status_code == status.HTTP_201_CREATED
 
     # Delete the blog
-    delete_response = client.delete(f"/blogs/{blog_data['slug']}")
+    delete_response = client.delete(f"/blogs/{blog_data['slug']}", headers=headers)
     assert delete_response.status_code == status.HTTP_204_NO_CONTENT
 
     # Verify blog was deleted - should return 404
@@ -258,9 +296,16 @@ def test_delete_blog_not_found():
     
     Verifies that attempting to delete a non-existent blog returns 404 error.
     """
-    response = client.delete('/blogs/1')
+    # Create a test user first
+    user_email = create_unique_email()
+    user_username = f"bloguser{uuid.uuid4().hex[:8]}"
+    user_id = create_test_user_sync(user_email, user_username, False)
+
+    # Get auth headers
+    headers = get_auth_headers(user_username)
+    response = client.delete('/blogs/1', headers=headers)
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert response.json() == {
-        "detail": "Item not found",
+        "detail": "Blog not found",
         "status_code": 404
     }
