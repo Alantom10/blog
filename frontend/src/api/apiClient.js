@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://127.0.0.1:8000";
+const BASE_URL = "http://localhost:8000";
 
 
 export const authApi = axios.create({
@@ -26,6 +26,11 @@ authApi.interceptors.response.use(
 
 export const handleError = (error, defaultMessage) => {
     if (error.response) {
+        // For 422 errors, show detailed validation info
+        if (error.response.status === 422 && error.response.data.errors) {
+            const errorMessages = error.response.data.errors.join(', ');
+            throw new Error(`Validation failed: ${errorMessages}`);
+        }
         throw new Error(error.response.data.detail || defaultMessage);
     }
     throw error;

@@ -176,12 +176,13 @@ function CreatePost() {
             const postData = {
                 title: title.trim(),
                 slug: slug.trim(),
+                author_id: "68c6a027dc90b4465cb25046",
                 author: {
                     name: "Alan Thomas",
                     image: "alan-profile.JPG",
                 },
                 cover_image: coverImage || '',
-                // datePublished: new Date().toLocaleDateString(),
+                datePublished: new Date().toISOString(),
                 content: content,
                 tags: tags,
                 is_published: true

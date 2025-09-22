@@ -1,3 +1,4 @@
+import os
 import pytest
 from datetime import datetime, timezone
 from fastapi.testclient import TestClient
@@ -17,11 +18,15 @@ client = TestClient(app)
 @pytest.fixture(autouse=True)
 def cleanup_test_data():
     """Automatically clean up test data before and after each test"""
-    # Clean up before test
-    users_collection.delete_many({"email": {"$regex": r"test|example\.com"}})
-    yield
+    # Clean up before test - only delete test data
+    users_collection.delete_many({"email": {"$regex": r"test.*@example\.com"}})
+    blogs_collection.delete_many({"slug": {"$regex": r"^(test-|new-|update-|delete-|my-|published-|draft-)"}})
+    
+    yield  # Run the test
+    
     # Clean up after test
-    users_collection.delete_many({"email": {"$regex": r"test|example\.com"}})
+    users_collection.delete_many({"email": {"$regex": r"test.*@example\.com"}}) 
+    blogs_collection.delete_many({"slug": {"$regex": r"^(test-|new-|update-|delete-|my-|published-|draft-)"}})
 
 
 def create_unique_email():

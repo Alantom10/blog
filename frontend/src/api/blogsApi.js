@@ -1,7 +1,7 @@
 import axios from "axios";
 import { authApi, handleError } from './apiClient';
 
-const BASE_URL = "http://127.0.0.1:8000"; // FastAPI backend URL
+const BASE_URL = "http://localhost:8000"; // FastAPI backend URL
 
 
 export const getBlogs = async () => {

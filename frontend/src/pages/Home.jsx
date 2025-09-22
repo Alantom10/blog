@@ -64,7 +64,7 @@ function Home() {
                 slug={blog.slug}
                 title={blog.title}
                 intro={generateIntro(blog.content, 20)}
-                // coverImage={blog.coverImage}  // Use blog.coverImage if coverImage URLs are in JSON
+                // coverImage={blog.cover_image}  // Use blog.coverImage if coverImage URLs are in JSON
                 coverImage={blogCoverImage}
                 authorName={blog.author.name}
                 authorProfileImage={authorProfileImage} // Use blog.authorProfileImage if URLs are in JSON

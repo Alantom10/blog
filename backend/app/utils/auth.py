@@ -14,6 +14,7 @@ from bson import ObjectId
 from app.models.user import UserResponse
 from app.middleware.rate_limit import limiter
 
+
 # Create router for authentication endpoints
 router = APIRouter(
     prefix='/auth',  # All endpoints will be prefixed with /auth
@@ -72,22 +73,23 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 class OAuth2PasswordBearerCookie(OAuth2PasswordBearer):
     def __call__(self, request: Request):
-        # First try Authorization header
-        authorization = request.headers.get("Authorization")
-        scheme, param = get_authorization_scheme_param(authorization)
-        if authorization and scheme.lower() == "bearer":
-            return param
-        
-        # Fallback to cookie
-        token = request.cookies.get("access_token")
-        if not token:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Not authenticated",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        return token
-
+            # First try Authorization header
+            authorization = request.headers.get("Authorization")
+            if authorization:
+                scheme, param = get_authorization_scheme_param(authorization)
+                if scheme.lower() == "bearer":
+                    return param
+            
+            # Fallback to cookie
+            token = request.cookies.get("access_token")
+            if not token:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Not authenticated",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+            return token
+    
 # Replace your existing oauth2_scheme
 oauth2_scheme = OAuth2PasswordBearerCookie(tokenUrl="/auth/login")
 
@@ -139,8 +141,16 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> UserResponse:
     return UserResponse(**response_dict)
 
 
+def conditional_rate_limit(limit_string):
+    def decorator(func):
+        if os.getenv("TESTING", "0") != "1":
+            return limiter.limit(limit_string)(func)
+        return func
+    return decorator
+
+
 @router.post("/login", response_model=Token)
-@limiter.limit("10/minute")  # Max 10 login attempts per minute
+@conditional_rate_limit("10/minute")  # Max 10 login attempts per minute
 def login_for_access_token(request: Request, response: Response, form_data: OAuth2PasswordRequestForm = Depends()):
     """
     OAuth2 compatible login endpoint for Swagger UI

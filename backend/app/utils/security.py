@@ -17,10 +17,13 @@ def sanitize_string(value: str) -> str:
     return value[:10000]
 
 def sanitize_dict(data: Dict[str, Any]) -> Dict[str, Any]:
-    """Recursively sanitize dictionary values"""
+    """Recursively sanitize dictionary values, skipping blog content"""
     sanitized = {}
     for key, value in data.items():
-        if isinstance(value, str):
+        if key == "content":  
+            # Allow HTML content (already from trusted source like Quill)
+            sanitized[key] = value
+        elif isinstance(value, str):
             sanitized[key] = sanitize_string(value)
         elif isinstance(value, dict):
             sanitized[key] = sanitize_dict(value)

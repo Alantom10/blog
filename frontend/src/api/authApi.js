@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const AUTH_URL = "http://127.0.0.1:8000/auth"; // Your FastAPI auth endpoint
+const AUTH_URL = "http://localhost:8000/auth"; // Your FastAPI auth endpoint
 
 
 const handleError = (error, defaultMessage) => {
@@ -12,7 +12,7 @@ const handleError = (error, defaultMessage) => {
 
 export const login = async (credentials) => {
     try {
-        const response = await axios.post(`${AUTH_URL}/login`, credentials, {
+        const response = await axios.post(`${AUTH_URL}/login-json`, credentials, {
             withCredentials: true
         });
         return response.data;
