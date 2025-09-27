@@ -1,17 +1,54 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+
 Resources:
-  FastApiFunction:
+  BlogApiFunction:
     Type: AWS::Serverless::Function
     Properties:
+      CodeUri: .
       Handler: app.main.handler
       Runtime: python3.13
-      CodeUri: .
-      MemorySize: 512
-      Timeout: 10
+      Environment:
+        Variables:
+          MONGO_URI: !Ref MongoUri
+          MONGO_DB_NAME: !Ref MongoDbName
+          SECRET_KEY: !Ref SecretKey
       Events:
-        Api:
+        CatchAll:
           Type: Api
           Properties:
             Path: /{proxy+}
             Method: ANY
+        Root:
+          Type: Api
+          Properties:
+            Path: /
+            Method: ANY
+    Metadata:
+      BuildMethod: python3.13
+      DockerTag: python3.13-v1
+      DockerContext: .
+      Dockerfile: Dockerfile
+      BuildProperties:
+        Requirements: requirements-lambda.txt
+
+Parameters:
+  MongoUri:
+    Type: String
+    Description: MongoDB connection string
+  MongoDbName:
+    Type: String  
+    Description: MongoDB database name
+  SecretKey:
+    Type: String
+    Description: JWT secret key
+
+Outputs:
+  BlogApiUrl:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
